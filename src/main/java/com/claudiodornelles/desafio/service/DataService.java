@@ -8,6 +8,7 @@ import com.claudiodornelles.desafio.repository.CustomerRepository;
 import com.claudiodornelles.desafio.repository.ProductRepository;
 import com.claudiodornelles.desafio.repository.SaleRepository;
 import com.claudiodornelles.desafio.repository.SalesmanRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -63,7 +64,11 @@ public class DataService {
         salesman.setCpf(info.get(1));
         salesman.setName(info.get(2));
         salesman.setSalary(BigDecimal.valueOf(Float.parseFloat(info.get(3))));
-        salesmanRepository.save(salesman);
+        try {
+            salesmanRepository.save(salesman);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     
     private void updateSalesmanSaleInfo(String id, BigDecimal salePrice) {
@@ -71,7 +76,11 @@ public class DataService {
         if (salesman.isPresent()) {
             Salesman foundSalesman = salesman.get();
             foundSalesman.updateAmountSold(salePrice);
-            salesmanRepository.save(foundSalesman);
+            try {
+                salesmanRepository.save(foundSalesman);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
     
@@ -80,7 +89,11 @@ public class DataService {
         customer.setCnpj(info.get(1));
         customer.setName(info.get(2));
         customer.setBusinessArea(info.get(3));
-        customerRepository.save(customer);
+        try {
+            customerRepository.save(customer);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     
     private void saveSaleInfo(List<String> info) {
@@ -91,8 +104,12 @@ public class DataService {
         sale.setProductList(info.get(2));
         sale.setPrice(salePrice);
         sale.setSalesman(info.get(3));
-        saleRepository.save(sale);
-        updateSalesmanSaleInfo(sale.getSalesman(), salePrice);
+        try {
+            saleRepository.save(sale);
+            updateSalesmanSaleInfo(sale.getSalesman(), salePrice);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     
     private BigDecimal saveProductInfo(List<String> saleData) {
@@ -107,8 +124,12 @@ public class DataService {
             product.setId(Long.parseLong(tempData.get(0)));
             product.setQuantity(Float.parseFloat(tempData.get(1)));
             product.setPrice(BigDecimal.valueOf(Float.parseFloat(tempData.get(2))));
-            productRepository.save(product);
-            salePrice = salePrice.add(product.getPrice());
+            try {
+                productRepository.save(product);
+                salePrice = salePrice.add(product.getPrice());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
         return salePrice;
     }

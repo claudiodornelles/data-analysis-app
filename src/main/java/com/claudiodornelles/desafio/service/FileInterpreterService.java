@@ -13,7 +13,7 @@ public class FileInterpreterService {
     
     public List<String> readInputData() {
         String home = System.getProperty("user.home");
-        File file = new File(home + "/data/in/flatfile.dat");
+        File file = new File(home + "/data/in/dataname2883.dat");
         List<String> fileData = new ArrayList<>();
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNext()) {

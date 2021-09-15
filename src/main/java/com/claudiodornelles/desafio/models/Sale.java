@@ -1,5 +1,6 @@
 package com.claudiodornelles.desafio.models;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.math.BigDecimal;
@@ -9,6 +10,7 @@ public class Sale {
     
     @Id
     private Long id;
+    @Column(columnDefinition = "TEXT")
     private String products;
     private String salesman;
     private BigDecimal price;
