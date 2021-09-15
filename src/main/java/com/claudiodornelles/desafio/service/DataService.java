@@ -123,7 +123,8 @@ public class DataService {
             Product product = new Product();
             product.setId(Long.parseLong(tempData.get(0)));
             product.setQuantity(Float.parseFloat(tempData.get(1)));
-            product.setPrice(BigDecimal.valueOf(Float.parseFloat(tempData.get(2))));
+            product.setPrice(BigDecimal.valueOf(Float.parseFloat(tempData.get(2)))
+                                       .multiply(BigDecimal.valueOf(product.getQuantity())));
             try {
                 productRepository.save(product);
                 salePrice = salePrice.add(product.getPrice());
