@@ -1,5 +1,6 @@
 package com.claudiodornelles.desafio.service;
 
+import com.claudiodornelles.desafio.models.Report;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,22 +36,25 @@ public class ReportService {
         File inputRoot = new File(inputDirectory);
         List<File> sourceFiles = new ArrayList<>(List.of(Objects.requireNonNull(inputRoot.listFiles((input, name) -> name.endsWith(filesExtension)))));
         sourceFiles.removeIf(file -> writtenOutputs.contains(file.getName()));
-        if (sourceFiles.isEmpty()) {
-            LOGGER.info("Waiting for new files...");
-        } else {
+        if (!sourceFiles.isEmpty()) {
             LOGGER.info("New files available...");
-            createReports(sourceFiles);
+            createReports(sourceFiles, "challengeReport");
         }
     }
     
-    public void createReports(List<File> sourceFiles) {
-        for (File file : sourceFiles) {
-            LOGGER.info("Start report from file: " + file.getName());
-            writtenOutputs.add(file.getName());
-            ReportGenerator reportGenerator = context.getBean("reportGenerator", ReportGenerator.class);
-            reportGenerator.setFile(file);
-            Thread thread = new Thread(reportGenerator);
-            thread.start();
+    public void createReports(List<File> sourceFiles, String reportType) {
+        try {
+            for (File file : sourceFiles) {
+                LOGGER.info("Creating " + reportType + " from file: " + file.getName());
+                writtenOutputs.add(file.getName());
+                Report report = context.getBean(reportType, Report.class);
+                report.setSource(file);
+                Thread thread = new Thread((Runnable) report);
+                thread.start();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Cloud not create the report");
+            LOGGER.trace(e.toString());
         }
     }
 }

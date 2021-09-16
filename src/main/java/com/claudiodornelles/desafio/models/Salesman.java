@@ -24,22 +24,40 @@ public class Salesman {
     }
     
     public void setName(String name) {
-        this.name = name;
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("A name must be passed");
+        else this.name = name;
     }
     
     public void setCpf(String cpf) {
-        this.cpf = cpf;
+        if (cpf == null || cpf.isBlank()) throw new IllegalArgumentException("A cpf must be passed");
+        else this.cpf = cpf;
     }
     
     public void setSalary(BigDecimal salary) {
-        this.salary = salary;
+        if (salary == null) throw new IllegalArgumentException("A salary must be passed");
+        else if (salary.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("Salary must be greater than zero");
+        else this.salary = salary;
+    }
+    
+    public void setAmountSold(BigDecimal amountSold) {
+        if (amountSold == null) throw new IllegalArgumentException("An amount sold must be passed");
+        else if (amountSold.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Amount sold cannot be negative");
+        else this.amountSold = amountSold;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getCpf() {
+        return cpf;
+    }
+    
+    public BigDecimal getSalary() {
+        return salary;
     }
     
     public BigDecimal getAmountSold() {
         return amountSold;
-    }
-    
-    public void setAmountSold(BigDecimal amountSold) {
-        this.amountSold = amountSold;
     }
 }

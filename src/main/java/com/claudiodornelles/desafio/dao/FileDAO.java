@@ -1,4 +1,4 @@
-package com.claudiodornelles.desafio.service;
+package com.claudiodornelles.desafio.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

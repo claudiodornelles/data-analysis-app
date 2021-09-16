@@ -1,9 +1,8 @@
-package com.claudiodornelles.desafio.service;
+package com.claudiodornelles.desafio.models;
 
 import com.claudiodornelles.desafio.builders.SaleBuilder;
 import com.claudiodornelles.desafio.builders.SalesmanBuilder;
-import com.claudiodornelles.desafio.models.Sale;
-import com.claudiodornelles.desafio.models.Salesman;
+import com.claudiodornelles.desafio.dao.FileDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class ReportGenerator implements Runnable {
+public class ChallengeReport implements Runnable, Report {
     
     private File file;
     private final String listDelimiter;
@@ -35,14 +34,10 @@ public class ReportGenerator implements Runnable {
     private final List<Sale> salesData = new ArrayList<>();
     private final List<Salesman> salesmenData = new ArrayList<>();
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReportGenerator.class);
-    
-    protected void setFile(File file) {
-        this.file = file;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChallengeReport.class);
     
     @Autowired
-    private ReportGenerator(@Value("${list.delimiter}") String listDelimiter,
+    private ChallengeReport(@Value("${list.delimiter}") String listDelimiter,
                             @Value("${products.info.delimiter}") String productsInfoDelimiter,
                             @Value("${general.delimiter}") String generalDelimiter,
                             @Value("${salesman.prefix}") String salesmanPrefix,
@@ -60,15 +55,22 @@ public class ReportGenerator implements Runnable {
     
     @Override
     public void run() {
-        tailorFileData(readFile());
+        tailorFileData(readSource());
         writeReport();
     }
     
-    private List<String> readFile() {
+    @Override
+    public void setSource(File file) {
+        this.file = file;
+    }
+    
+    @Override
+    public List<String> readSource() {
         return fileDAO.readFile(file);
     }
     
-    private void writeReport() {
+    @Override
+    public void writeReport() {
         fileDAO.writeReport(getReport(), file);
     }
     
@@ -121,9 +123,8 @@ public class ReportGenerator implements Runnable {
     }
     
     private Long getMostExpensiveSaleId() {
-        Sale mostExpansiveSale = SaleBuilder.builder()
-                                            .withPrice(BigDecimal.ZERO)
-                                            .build();
+        Sale mostExpansiveSale = new Sale();
+        mostExpansiveSale.setPrice(BigDecimal.ZERO);
         for (Sale sale : salesData) {
             if (sale.getPrice().compareTo(mostExpansiveSale.getPrice()) > 0) {
                 mostExpansiveSale = sale;
