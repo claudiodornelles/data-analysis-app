@@ -1,15 +1,9 @@
 package com.claudiodornelles.desafio.models;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import java.math.BigDecimal;
 
-@Entity
-@Table(schema = "salesmen")
 public class Salesman {
     
-    @Id
     private String name;
     private String cpf;
     private BigDecimal salary;
@@ -29,24 +23,12 @@ public class Salesman {
         this.amountSold = BigDecimal.ZERO;
     }
     
-    public String getName() {
-        return name;
-    }
-    
     public void setName(String name) {
         this.name = name;
     }
     
-    public String getCpf() {
-        return cpf;
-    }
-    
     public void setCpf(String cpf) {
         this.cpf = cpf;
-    }
-    
-    public BigDecimal getSalary() {
-        return salary;
     }
     
     public void setSalary(BigDecimal salary) {
@@ -59,9 +41,5 @@ public class Salesman {
     
     public void setAmountSold(BigDecimal amountSold) {
         this.amountSold = amountSold;
-    }
-    
-    public void updateAmountSold(BigDecimal amountSold) {
-        this.amountSold = getAmountSold().add(amountSold);
     }
 }

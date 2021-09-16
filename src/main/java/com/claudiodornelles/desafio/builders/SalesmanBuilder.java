@@ -31,6 +31,11 @@ public class SalesmanBuilder {
         return this;
     }
     
+    public SalesmanBuilder withAmountSold(BigDecimal amountSold) {
+        this.salesman.setAmountSold(amountSold);
+        return this;
+    }
+    
     public Salesman build() {
         return this.salesman;
     }

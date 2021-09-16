@@ -21,11 +21,6 @@ public class SaleBuilder {
         return this;
     }
     
-    public SaleBuilder withProductList(String productList) {
-        this.sale.setProductList(productList);
-        return this;
-    }
-    
     public SaleBuilder withSalesman(String salesman) {
         this.sale.setSalesman(salesman);
         return this;

@@ -1,24 +1,47 @@
 package com.claudiodornelles.desafio.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Service
 public class FileInterpreterService {
     
+    private final String inputDirectory;
+    private final String filesExtension;
+    private final ApplicationContext context;
+    
+    @Autowired
+    public FileInterpreterService(@Value("${input.directory}") String inputDirectory,
+                                  @Value("${files.extension}") String filesExtension,
+                                  ApplicationContext context) {
+        this.inputDirectory = inputDirectory;
+        this.filesExtension = filesExtension;
+        this.context = context;
+    }
+    
+    private final List<String> writtenOutputs = new ArrayList<>();
+    
     public void readInputData() {
-        String directory = System.getProperty("user.home") + "/data/in/";
-        File dir = new File(directory);
-        List<File> files = List.of(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".dat"))));
-        for (File file : files) {
-            System.out.println(LocalDateTime.now().toString().replace("T", " ") + ": Start reading file \"" + file.getName() + "\".");
-            FileReader fileReader = new FileReader();
-            fileReader.read(file);
-            System.out.println(LocalDateTime.now().toString().replace("T", " ") + ": File \"" + file.getName() + "\" read.");
+        File inputRoot = new File(inputDirectory);
+        List<File> newFiles = new ArrayList<>(List.of(Objects.requireNonNull(inputRoot.listFiles((input, name) -> name.endsWith(filesExtension)))));
+        newFiles.removeIf(file -> writtenOutputs.contains(file.getName()));
+        if (newFiles.isEmpty()) {
+            System.out.println("Waiting for new files...");
+        } else {
+            for (File file : newFiles) {
+                writtenOutputs.add(file.getName());
+                FileReader fileReader = context.getBean("fileReader", FileReader.class);
+                fileReader.setFile(file);
+                Thread thread = new Thread(fileReader);
+                thread.start();
+            }
         }
     }
 }
