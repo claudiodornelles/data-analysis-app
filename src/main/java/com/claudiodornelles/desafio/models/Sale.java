@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 public class Sale {
     
     private Long id;
-    private String products;
     private String salesman;
     private BigDecimal price;
     
@@ -23,14 +22,6 @@ public class Sale {
     
     public void setId(Long id) {
         this.id = id;
-    }
-    
-    public String getProductList() {
-        return products;
-    }
-    
-    public void setProductList(String productList) {
-        this.products = productList;
     }
     
     public String getSalesman() {

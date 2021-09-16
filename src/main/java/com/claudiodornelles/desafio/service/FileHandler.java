@@ -4,6 +4,8 @@ import com.claudiodornelles.desafio.builders.SaleBuilder;
 import com.claudiodornelles.desafio.builders.SalesmanBuilder;
 import com.claudiodornelles.desafio.models.Sale;
 import com.claudiodornelles.desafio.models.Salesman;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class FileReader implements Runnable {
+public class FileHandler implements Runnable {
     
     private File file;
     private final String listDelimiter;
@@ -39,19 +41,21 @@ public class FileReader implements Runnable {
     private final List<Sale> salesData = new ArrayList<>();
     private final List<Salesman> salesmenData = new ArrayList<>();
     
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileHandler.class);
+    
     protected void setFile(File file) {
         this.file = file;
     }
     
     @Autowired
-    private FileReader(@Value("${list.delimiter}") String listDelimiter,
-                       @Value("${products.info.delimiter}") String productsInfoDelimiter,
-                       @Value("${general.delimiter}") String generalDelimiter,
-                       @Value("${salesman.prefix}") String salesmanPrefix,
-                       @Value("${customer.prefix}") String customerPrefix,
-                       @Value("${sale.prefix}") String salePrefix,
-                       @Value("${output.directory}") String outputDirectory,
-                       @Value("${files.extension}") String filesExtension) {
+    private FileHandler(@Value("${list.delimiter}") String listDelimiter,
+                        @Value("${products.info.delimiter}") String productsInfoDelimiter,
+                        @Value("${general.delimiter}") String generalDelimiter,
+                        @Value("${salesman.prefix}") String salesmanPrefix,
+                        @Value("${customer.prefix}") String customerPrefix,
+                        @Value("${sale.prefix}") String salePrefix,
+                        @Value("${output.directory}") String outputDirectory,
+                        @Value("${files.extension}") String filesExtension) {
         this.listDelimiter = listDelimiter;
         this.productsInfoDelimiter = productsInfoDelimiter;
         this.generalDelimiter = generalDelimiter;
@@ -64,11 +68,13 @@ public class FileReader implements Runnable {
     
     @Override
     public void run() {
-        read(file);
-        writeOut(file);
+        LOGGER.info("Reading file :" + file.getName());
+        readFile(file);
+        LOGGER.info("Writing output from file :" + file.getName());
+        writeReport(file);
     }
     
-    private void read(File file) {
+    private void readFile(File file) {
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNext()) {
                 String currentElement = scanner.next();
@@ -85,7 +91,8 @@ public class FileReader implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Could not read file: " + file.getName());
+            LOGGER.trace(e.toString());
         }
     }
     
@@ -137,6 +144,7 @@ public class FileReader implements Runnable {
         if (mostExpansiveSale.getId() != null) {
             return mostExpansiveSale.getId();
         } else {
+            LOGGER.debug("No sale found.");
             return null;
         }
     }
@@ -155,7 +163,7 @@ public class FileReader implements Runnable {
         return customersData.size();
     }
     
-    private void writeOut(File file) {
+    private void writeReport(File file) {
         String fileName = file.getName().replace(filesExtension, ".done" + filesExtension);
         File dir2 = new File(outputDirectory);
         File outputFile = new File(dir2, fileName);
@@ -164,8 +172,10 @@ public class FileReader implements Runnable {
                          "The total amount of salesmen is: " + getSalesmenAmount() + "\n" +
                          "The most expensive sale has ID:" + getMostExpensiveSaleId() + "\n" +
                          "The worst salesman ever is: " + getWorstSalesmanEver() + "\n");
+            LOGGER.info("Output file has been written for input file :" + file.getName());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Could not write output file from :" + file.getName());
+            LOGGER.trace(e.toString());
         }
     }
 }
