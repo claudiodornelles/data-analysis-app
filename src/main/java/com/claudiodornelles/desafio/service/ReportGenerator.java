@@ -11,21 +11,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class FileHandler implements Runnable {
+public class ReportGenerator implements Runnable {
     
     private File file;
     private final String listDelimiter;
@@ -34,65 +29,58 @@ public class FileHandler implements Runnable {
     private final String salesmanPrefix;
     private final String customerPrefix;
     private final String salePrefix;
-    private final String outputDirectory;
-    private final String filesExtension;
+    private final FileDAO fileDAO;
     
     private final List<String> customersData = new ArrayList<>();
     private final List<Sale> salesData = new ArrayList<>();
     private final List<Salesman> salesmenData = new ArrayList<>();
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReportGenerator.class);
     
     protected void setFile(File file) {
         this.file = file;
     }
     
     @Autowired
-    private FileHandler(@Value("${list.delimiter}") String listDelimiter,
-                        @Value("${products.info.delimiter}") String productsInfoDelimiter,
-                        @Value("${general.delimiter}") String generalDelimiter,
-                        @Value("${salesman.prefix}") String salesmanPrefix,
-                        @Value("${customer.prefix}") String customerPrefix,
-                        @Value("${sale.prefix}") String salePrefix,
-                        @Value("${output.directory}") String outputDirectory,
-                        @Value("${files.extension}") String filesExtension) {
+    private ReportGenerator(@Value("${list.delimiter}") String listDelimiter,
+                            @Value("${products.info.delimiter}") String productsInfoDelimiter,
+                            @Value("${general.delimiter}") String generalDelimiter,
+                            @Value("${salesman.prefix}") String salesmanPrefix,
+                            @Value("${customer.prefix}") String customerPrefix,
+                            @Value("${sale.prefix}") String salePrefix,
+                            FileDAO fileDAO) {
         this.listDelimiter = listDelimiter;
         this.productsInfoDelimiter = productsInfoDelimiter;
         this.generalDelimiter = generalDelimiter;
         this.salesmanPrefix = salesmanPrefix;
         this.customerPrefix = customerPrefix;
         this.salePrefix = salePrefix;
-        this.outputDirectory = outputDirectory;
-        this.filesExtension = filesExtension;
+        this.fileDAO = fileDAO;
     }
     
     @Override
     public void run() {
-        LOGGER.info("Reading file :" + file.getName());
-        readFile(file);
-        LOGGER.info("Writing output from file :" + file.getName());
-        writeReport(file);
+        tailorFileData(readFile());
+        writeReport();
     }
     
-    private void readFile(File file) {
-        try (Scanner scanner = new Scanner(file)) {
-            while (scanner.hasNext()) {
-                String currentElement = scanner.next();
-                if (currentElement.startsWith(salesmanPrefix)) {
-                    salesmenData.add(
-                            tailorSalesmanData(currentElement)
-                                    );
-                } else if (currentElement.startsWith(customerPrefix)) {
-                    customersData.add(currentElement);
-                } else if (currentElement.startsWith(salePrefix)) {
-                    salesData.add(
-                            tailorSaleData(currentElement)
-                                 );
-                }
+    private List<String> readFile() {
+        return fileDAO.readFile(file);
+    }
+    
+    private void writeReport() {
+        fileDAO.writeReport(getReport(), file);
+    }
+    
+    private void tailorFileData(List<String> fileData) {
+        for (String element : fileData) {
+            if (element.startsWith(salesmanPrefix)) {
+                salesmenData.add(tailorSalesmanData(element));
+            } else if (element.startsWith(customerPrefix)) {
+                customersData.add(element);
+            } else if (element.startsWith(salePrefix)) {
+                salesData.add(tailorSaleData(element));
             }
-        } catch (IOException e) {
-            LOGGER.error("Could not read file: " + file.getName());
-            LOGGER.trace(e.toString());
         }
     }
     
@@ -163,19 +151,10 @@ public class FileHandler implements Runnable {
         return customersData.size();
     }
     
-    private void writeReport(File file) {
-        String fileName = file.getName().replace(filesExtension, ".done" + filesExtension);
-        File dir2 = new File(outputDirectory);
-        File outputFile = new File(dir2, fileName);
-        try (Writer output = new BufferedWriter(new FileWriter(outputFile))) {
-            output.write("The total amount of customers is: " + getCustomersAmount() + "\n" +
-                         "The total amount of salesmen is: " + getSalesmenAmount() + "\n" +
-                         "The most expensive sale has ID:" + getMostExpensiveSaleId() + "\n" +
-                         "The worst salesman ever is: " + getWorstSalesmanEver() + "\n");
-            LOGGER.info("Output file has been written for input file :" + file.getName());
-        } catch (Exception e) {
-            LOGGER.error("Could not write output file from :" + file.getName());
-            LOGGER.trace(e.toString());
-        }
+    private String getReport() {
+        return "The total amount of customers is: " + getCustomersAmount() + "\n" +
+               "The total amount of salesmen is: " + getSalesmenAmount() + "\n" +
+               "The most expensive sale has ID:" + getMostExpensiveSaleId() + "\n" +
+               "The worst salesman ever is: " + getWorstSalesmanEver() + "\n";
     }
 }

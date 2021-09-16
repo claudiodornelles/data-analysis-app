@@ -1,6 +1,6 @@
 package com.claudiodornelles.desafio;
 
-import com.claudiodornelles.desafio.service.DataInterpreterService;
+import com.claudiodornelles.desafio.service.ReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -14,10 +14,10 @@ public class Main {
     
     public static void main(String[] args) {
         ApplicationContext applicationContext = SpringApplication.run(Main.class, args);
-        DataInterpreterService dataInterpreterService = applicationContext.getBean("dataInterpreterService", DataInterpreterService.class);
+        ReportService reportService = applicationContext.getBean("reportService", ReportService.class);
         while (true) {
             try {
-                dataInterpreterService.readInputData();
+                reportService.monitorDirectory();
                 Thread.sleep(5000);
             } catch (Exception e) {
                 LOGGER.trace(e.toString());
