@@ -2,8 +2,10 @@ package com.claudiodornelles.desafio.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(schema = "customers")
 public class Customer {
     
     @Id

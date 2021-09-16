@@ -2,9 +2,11 @@ package com.claudiodornelles.desafio.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 
 @Entity
+@Table(schema = "salesmen")
 public class Salesman {
     
     @Id

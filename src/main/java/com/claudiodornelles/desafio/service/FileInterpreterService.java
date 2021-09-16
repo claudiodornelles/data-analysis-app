@@ -3,33 +3,22 @@ package com.claudiodornelles.desafio.service;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Objects;
 
 @Service
 public class FileInterpreterService {
     
-    public List<String> readInputData() {
-        String home = System.getProperty("user.home");
-        File file = new File(home + "/data/in/dataname2883.dat");
-        List<String> fileData = new ArrayList<>();
-        try (Scanner scanner = new Scanner(file)) {
-            while (scanner.hasNext()) {
-                String currentElement = scanner.next();
-                if (currentElement.startsWith("001ç") ||
-                    currentElement.startsWith("002ç") ||
-                    currentElement.startsWith("003ç")) {
-                    fileData.add(currentElement);
-                } else {
-                    int lastElement = fileData.size() - 1;
-                    fileData.set(lastElement, fileData.get(lastElement) + " " + currentElement);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void readInputData() {
+        String directory = System.getProperty("user.home") + "/data/in/";
+        File dir = new File(directory);
+        List<File> files = List.of(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".dat"))));
+        for (File file : files) {
+            System.out.println(LocalDateTime.now().toString().replace("T", " ") + ": Start reading file \"" + file.getName() + "\".");
+            FileReader fileReader = new FileReader();
+            fileReader.read(file);
+            System.out.println(LocalDateTime.now().toString().replace("T", " ") + ": File \"" + file.getName() + "\" read.");
         }
-        return fileData;
     }
 }
