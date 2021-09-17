@@ -107,15 +107,25 @@ public class ChallengeReport implements Runnable, Report {
                 BigDecimal price = new BigDecimal(productInfo.get(2));
                 salePrice = salePrice.add(price.multiply(quantity));
             }
+            
+            StringBuilder salesmanName = new StringBuilder(saleInfo.get(3));
+            
+            if (saleInfo.size() > 4) {
+                int lastElementIndex = saleInfo.size() - 1;
+                for (int i = 4; i <= lastElementIndex; i++){
+                    salesmanName.append(generalDelimiter);
+                    salesmanName.append(saleInfo.get(i));
+                }
+            }
             return SaleBuilder.builder()
                               .withId(Long.parseLong(saleInfo.get(1)))
-                              .withSalesman(saleInfo.get(3))
+                              .withSalesman(salesmanName.toString())
                               .withPrice(salePrice)
                               .build();
         } catch (Exception e) {
             LOGGER.error("Error building a valid Sale data");
-            LOGGER.debug("Error with received data from file: " + file.getName());
-            LOGGER.trace(e.toString());
+            LOGGER.error("Error with received data from file: " + file.getName());
+            LOGGER.error(e.toString());
             return null;
         }
     }
@@ -123,22 +133,32 @@ public class ChallengeReport implements Runnable, Report {
     protected Salesman tailorSalesmanData(String data) {
         try {
             List<String> salesmanInfo = List.of(data.split(generalDelimiter));
-            String name = salesmanInfo.get(2);
-            List<Sale> sales = salesData.stream().filter(sale -> sale.getSalesman().equals(name)).collect(Collectors.toList());
+            
+            StringBuilder salesmanName = new StringBuilder(salesmanInfo.get(2));
+    
+            int lastElementIndex = salesmanInfo.size() - 1;
+            if (salesmanInfo.size() > 4) {
+                for (int i = 3; i < lastElementIndex; i++){
+                    salesmanName.append(generalDelimiter);
+                    salesmanName.append(salesmanInfo.get(i));
+                }
+            }
+            
+            List<Sale> sales = salesData.stream().filter(sale -> sale.getSalesman().equals(salesmanName.toString())).collect(Collectors.toList());
             BigDecimal amountSold = BigDecimal.ZERO;
             for (Sale sale : sales) {
                 amountSold = amountSold.add(sale.getPrice());
             }
             return SalesmanBuilder.builder()
                                   .withCpf(salesmanInfo.get(1))
-                                  .withName(name)
-                                  .withSalary(new BigDecimal(salesmanInfo.get(3)))
+                                  .withName(salesmanName.toString())
+                                  .withSalary(new BigDecimal(salesmanInfo.get(lastElementIndex)))
                                   .withAmountSold(amountSold)
                                   .build();
         } catch (Exception e) {
             LOGGER.error("Error building a valid Salesman data");
-            LOGGER.debug("Error with received data from file: " + file.getName());
-            LOGGER.trace(e.toString());
+            LOGGER.error(e.toString());
+            LOGGER.error("Error with received data from file: " + file.getName());
             return null;
         }
     }
@@ -154,7 +174,7 @@ public class ChallengeReport implements Runnable, Report {
         if (mostExpansiveSale.getId() != null) {
             return mostExpansiveSale.getId();
         } else {
-            LOGGER.debug("No sale found.");
+            LOGGER.error("No sale found.");
             return null;
         }
     }
@@ -166,7 +186,7 @@ public class ChallengeReport implements Runnable, Report {
             return tempData.get(0);
         } catch (Exception e) {
             LOGGER.error("Could not execute method getWorstSalesmanEver()");
-            LOGGER.trace(e.toString());
+            LOGGER.error(e.toString());
             return null;
         }
     }

@@ -24,6 +24,7 @@ public class FileDAO {
     private final String salePrefix;
     private final String filesExtension;
     private final String outputDirectory;
+    private final String generalDelimiter;
     
     private static final Logger LOGGER = LoggerFactory.getLogger(FileDAO.class);
     
@@ -32,12 +33,14 @@ public class FileDAO {
                    @Value("${customer.prefix}") String customerPrefix,
                    @Value("${sale.prefix}") String salePrefix,
                    @Value("${files.extension}") String filesExtension,
-                   @Value("${output.directory}") String outputDirectory) {
+                   @Value("${output.directory}") String outputDirectory,
+                   @Value("${general.delimiter}") String generalDelimiter) {
         this.salesmanPrefix = salesmanPrefix;
         this.customerPrefix = customerPrefix;
         this.salePrefix = salePrefix;
         this.filesExtension = filesExtension;
         this.outputDirectory = outputDirectory;
+        this.generalDelimiter = generalDelimiter;
     }
     
     public List<String> readFile(@NotNull File file) {
@@ -48,19 +51,16 @@ public class FileDAO {
                 String currentLine = scanner.next();
                 List<String> temporaryBlock = List.of(currentLine.split(" "));
                 for (String element : temporaryBlock) {
+                    int lastElement = fileData.size() - 1;
                     if (element.startsWith(salesmanPrefix) ||
                         element.startsWith(customerPrefix) ||
                         element.startsWith(salePrefix)) {
                         fileData.add(element);
                     } else if (Character.isAlphabetic(element.charAt(0)) &&
-                               !element.startsWith("ç")) {
-                        int lastElement = fileData.size() - 1;
-                        fileData.set(lastElement,
-                                     fileData.get(lastElement) + " " + element);
+                               !element.startsWith(generalDelimiter)) {
+                        fileData.set(lastElement, fileData.get(lastElement) + " " + element);
                     } else {
-                        int lastElement = fileData.size() - 1;
-                        fileData.set(lastElement,
-                                     fileData.get(lastElement) + element);
+                        fileData.set(lastElement, fileData.get(lastElement) + element);
                     }
                 }
             }

@@ -41,10 +41,12 @@ class ChallengeReportTest {
         List<String> response = new ArrayList<>();
         response.add("001ç1234567891234çDiegoç50000");
         response.add("001ç3245678865434çRenatoç40000.99");
+        response.add("001ç3245678865434çJoão Gonçalvesç40000.99");
         response.add("002ç2345675434544345çJose da SilvaçRural");
         response.add("002ç2345675433444345çEduardoPereiraçRural");
         response.add("003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
         response.add("003ç08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
+        response.add("003ç09ç[1-1-1,2-1-1.50,3-1-0.10]çJoão Gonçalves");
         return response;
     }
     
@@ -163,6 +165,11 @@ class ChallengeReportTest {
                              .withPrice(new BigDecimal("393.50"))
                              .withSalesman("Renato")
                              .build());
+        sales.add(SaleBuilder.builder()
+                             .withId(9L)
+                             .withPrice(new BigDecimal("2.60"))
+                             .withSalesman("João Gonçalves")
+                             .build());
         salesmen.add(SalesmanBuilder.builder()
                                     .withName("Diego")
                                     .withCpf("1234567891234")
@@ -175,6 +182,12 @@ class ChallengeReportTest {
                                     .withSalary(new BigDecimal("40000.99"))
                                     .withAmountSold(new BigDecimal("393.50"))
                                     .build());
+        salesmen.add(SalesmanBuilder.builder()
+                                    .withName("João Gonçalves")
+                                    .withCpf("3245678865434")
+                                    .withSalary(new BigDecimal("40000.99"))
+                                    .withAmountSold(new BigDecimal("2.60"))
+                                    .build());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.tailorFileData(regularFileResponse())),
                 () -> assertEquals(customers.toString(), challengeReport.getCustomersData().toString()),
@@ -185,6 +198,9 @@ class ChallengeReportTest {
                 () -> assertEquals(sales.get(1).getId(), challengeReport.getSalesData().get(1).getId()),
                 () -> assertEquals(sales.get(1).getSalesman(), challengeReport.getSalesData().get(1).getSalesman()),
                 () -> assertEquals(0, sales.get(1).getPrice().compareTo(challengeReport.getSalesData().get(1).getPrice())),
+                () -> assertEquals(sales.get(2).getId(), challengeReport.getSalesData().get(2).getId()),
+                () -> assertEquals(sales.get(2).getSalesman(), challengeReport.getSalesData().get(2).getSalesman()),
+                () -> assertEquals(0, sales.get(2).getPrice().compareTo(challengeReport.getSalesData().get(2).getPrice())),
                 () -> assertEquals(salesmen.size(), challengeReport.getSalesmenData().size()),
                 () -> assertEquals(salesmen.get(0).getName(), challengeReport.getSalesmenData().get(0).getName()),
                 () -> assertEquals(salesmen.get(0).getCpf(), challengeReport.getSalesmenData().get(0).getCpf()),
@@ -193,7 +209,11 @@ class ChallengeReportTest {
                 () -> assertEquals(salesmen.get(1).getName(), challengeReport.getSalesmenData().get(1).getName()),
                 () -> assertEquals(salesmen.get(1).getCpf(), challengeReport.getSalesmenData().get(1).getCpf()),
                 () -> assertEquals(0, salesmen.get(1).getAmountSold().compareTo(challengeReport.getSalesmenData().get(1).getAmountSold())),
-                () -> assertEquals(0, salesmen.get(1).getSalary().compareTo(challengeReport.getSalesmenData().get(1).getSalary()))
+                () -> assertEquals(0, salesmen.get(1).getSalary().compareTo(challengeReport.getSalesmenData().get(1).getSalary())),
+                () -> assertEquals(salesmen.get(2).getName(), challengeReport.getSalesmenData().get(2).getName()),
+                () -> assertEquals(salesmen.get(2).getCpf(), challengeReport.getSalesmenData().get(2).getCpf()),
+                () -> assertEquals(0, salesmen.get(2).getAmountSold().compareTo(challengeReport.getSalesmenData().get(2).getAmountSold())),
+                () -> assertEquals(0, salesmen.get(2).getSalary().compareTo(challengeReport.getSalesmenData().get(2).getSalary()))
                  );
     }
     
@@ -224,9 +244,9 @@ class ChallengeReportTest {
         challengeReport.tailorFileData(regularFileResponse());
         when(fileDAO.readFile(file)).thenReturn(regularFileResponse());
         String expectedReport = "The total amount of customers is: 2\n" +
-                                "The total amount of salesmen is: 2\n" +
+                                "The total amount of salesmen is: 3\n" +
                                 "The most expensive sale has ID: 10\n" +
-                                "The worst salesman ever is: {\"name\":'Renato', \"cpf\":'3245678865434', \"salary\" :40000.99, \"amountSold\":393.50}\n";
+                                "The worst salesman ever is: {\"name\":'João Gonçalves', \"cpf\":'3245678865434', \"salary\" :40000.99, \"amountSold\":2.60}\n";
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.getReport()),
                 () -> assertEquals(expectedReport, challengeReport.getReport())
