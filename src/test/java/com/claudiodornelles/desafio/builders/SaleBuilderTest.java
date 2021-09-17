@@ -5,7 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SaleBuilderTest {
     
@@ -116,7 +119,7 @@ class SaleBuilderTest {
         assertAll(
                 () -> assertEquals("Cannot create a Sale without a sale price", buildSaleWithoutPriceException.getMessage()),
                 () -> assertEquals(IllegalArgumentException.class, buildSaleWithoutPriceException.getClass())
-                
+        
                  );
     }
     
@@ -144,7 +147,7 @@ class SaleBuilderTest {
         assertAll(
                 () -> assertEquals("The id must be a number greater than 0", buildSaleWithZeroIdException.getMessage()),
                 () -> assertEquals(IllegalArgumentException.class, buildSaleWithZeroIdException.getClass())
-                
+        
                  );
     }
     

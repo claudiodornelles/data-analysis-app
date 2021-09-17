@@ -6,6 +6,7 @@ import com.claudiodornelles.desafio.dao.FileDAO;
 import com.claudiodornelles.desafio.models.Report;
 import com.claudiodornelles.desafio.models.Sale;
 import com.claudiodornelles.desafio.models.Salesman;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +42,12 @@ public class ChallengeReport implements Runnable, Report {
     
     @Autowired
     public ChallengeReport(@Value("${list.delimiter}") String listDelimiter,
-                            @Value("${products.info.delimiter}") String productsInfoDelimiter,
-                            @Value("${general.delimiter}") String generalDelimiter,
-                            @Value("${salesman.prefix}") String salesmanPrefix,
-                            @Value("${customer.prefix}") String customerPrefix,
-                            @Value("${sale.prefix}") String salePrefix,
-                            FileDAO fileDAO) {
+                           @Value("${products.info.delimiter}") String productsInfoDelimiter,
+                           @Value("${general.delimiter}") String generalDelimiter,
+                           @Value("${salesman.prefix}") String salesmanPrefix,
+                           @Value("${customer.prefix}") String customerPrefix,
+                           @Value("${sale.prefix}") String salePrefix,
+                           FileDAO fileDAO) {
         this.listDelimiter = listDelimiter;
         this.productsInfoDelimiter = productsInfoDelimiter;
         this.generalDelimiter = generalDelimiter;
@@ -77,12 +78,11 @@ public class ChallengeReport implements Runnable, Report {
         fileDAO.writeReport(getReport(), file);
     }
     
-    protected void tailorFileData(List<String> fileData) {
+    protected void tailorFileData(@NotNull List<String> fileData) {
         for (String element : fileData) {
             if (element.startsWith(customerPrefix)) {
                 customersData.add(element);
-            }
-            else if (element.startsWith(salePrefix)) {
+            } else if (element.startsWith(salePrefix)) {
                 salesData.add(tailorSaleData(element));
             }
         }

@@ -1,8 +1,10 @@
 package com.claudiodornelles.desafio.service;
 
 import com.claudiodornelles.desafio.models.Report;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -42,7 +44,7 @@ public class ReportService {
         }
     }
     
-    public void createReports(List<File> sourceFiles, String reportType) {
+    public void createReports(@NotNull List<File> sourceFiles, @NotNull String reportType) {
         try {
             for (File file : sourceFiles) {
                 LOGGER.info("Creating " + reportType + " from file: " + file.getName());
@@ -52,6 +54,10 @@ public class ReportService {
                 Thread thread = new Thread((Runnable) report);
                 thread.start();
             }
+        } catch (NoSuchBeanDefinitionException noSuchBeanDefinitionException) {
+            LOGGER.error("Could not generate this type of report " + reportType);
+            LOGGER.trace(noSuchBeanDefinitionException.toString());
+            throw noSuchBeanDefinitionException;
         } catch (Exception e) {
             LOGGER.error("Cloud not create the report");
             LOGGER.trace(e.toString());

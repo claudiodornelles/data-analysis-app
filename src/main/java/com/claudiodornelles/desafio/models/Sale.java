@@ -14,7 +14,8 @@ public class Sale {
     
     public void setPrice(BigDecimal totalAmount) {
         if (totalAmount == null) throw new IllegalArgumentException("A total amount must be passed");
-        else if (totalAmount.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Total amount cannot be less than zero");
+        else if (totalAmount.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Total amount cannot be less than zero");
         else this.price = totalAmount;
     }
     
@@ -33,7 +34,8 @@ public class Sale {
     }
     
     public void setSalesman(String salesman) {
-        if (salesman == null || salesman.isBlank()) throw new IllegalArgumentException("A salesman name must be passed");
+        if (salesman == null || salesman.isBlank())
+            throw new IllegalArgumentException("A salesman name must be passed");
         else this.salesman = salesman;
     }
 }

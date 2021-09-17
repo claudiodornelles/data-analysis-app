@@ -1,5 +1,6 @@
 package com.claudiodornelles.desafio.dao;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class FileDAO {
         this.outputDirectory = outputDirectory;
     }
     
-    public List<String> readFile(File file) {
+    public List<String> readFile(@NotNull File file) {
         LOGGER.info("Reading file :" + file.getName());
         try (Scanner scanner = new Scanner(file)) {
             List<String> fileData = new ArrayList<>();
@@ -52,7 +53,7 @@ public class FileDAO {
                         element.startsWith(salePrefix)) {
                         fileData.add(element);
                     } else if (Character.isAlphabetic(element.charAt(0)) &&
-                               !element.startsWith("ç")){
+                               !element.startsWith("ç")) {
                         int lastElement = fileData.size() - 1;
                         fileData.set(lastElement,
                                      fileData.get(lastElement) + " " + element);
@@ -71,7 +72,7 @@ public class FileDAO {
         }
     }
     
-    public void writeReport(String report, File sourceFile) {
+    public void writeReport(String report, @NotNull File sourceFile) {
         LOGGER.info("Writing output from file :" + sourceFile.getName());
         String fileName = sourceFile.getName().replace(filesExtension, ".done" + filesExtension);
         File dir2 = new File(outputDirectory);

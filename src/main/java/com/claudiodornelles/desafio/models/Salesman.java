@@ -35,13 +35,15 @@ public class Salesman {
     
     public void setSalary(BigDecimal salary) {
         if (salary == null) throw new IllegalArgumentException("A salary must be passed");
-        else if (salary.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("Salary must be greater than zero");
+        else if (salary.compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("Salary must be greater than zero");
         else this.salary = salary;
     }
     
     public void setAmountSold(BigDecimal amountSold) {
         if (amountSold == null) throw new IllegalArgumentException("An amount sold must be passed");
-        else if (amountSold.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Amount sold cannot be negative");
+        else if (amountSold.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Amount sold cannot be negative");
         else this.amountSold = amountSold;
     }
     

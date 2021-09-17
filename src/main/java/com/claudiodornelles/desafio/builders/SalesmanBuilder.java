@@ -34,7 +34,8 @@ public class SalesmanBuilder {
     
     public SalesmanBuilder withSalary(BigDecimal salary) {
         if (salary == null) throw new IllegalArgumentException("A salary must be passed");
-        else if (salary.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("Salary must be greater than zero");
+        else if (salary.compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("Salary must be greater than zero");
         else {
             this.salesman.setSalary(salary);
             return this;
@@ -43,7 +44,8 @@ public class SalesmanBuilder {
     
     public SalesmanBuilder withAmountSold(BigDecimal amountSold) {
         if (amountSold == null) throw new IllegalArgumentException("An amount sold must be passed");
-        else if (amountSold.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Amount sold cannot be negative");
+        else if (amountSold.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Amount sold cannot be negative");
         else {
             this.salesman.setAmountSold(amountSold);
             return this;
@@ -51,9 +53,12 @@ public class SalesmanBuilder {
     }
     
     public Salesman build() {
-        if (this.salesman.getName() == null) throw new IllegalArgumentException("Cannot create a salesman without a name");
-        else if (this.salesman.getCpf() == null) throw new IllegalArgumentException("Cannot create a salesman without a CPF");
-        else if (this.salesman.getSalary() == null) throw new IllegalArgumentException("Cannot create a salesman without a Salary");
+        if (this.salesman.getName() == null)
+            throw new IllegalArgumentException("Cannot create a salesman without a name");
+        else if (this.salesman.getCpf() == null)
+            throw new IllegalArgumentException("Cannot create a salesman without a CPF");
+        else if (this.salesman.getSalary() == null)
+            throw new IllegalArgumentException("Cannot create a salesman without a Salary");
         else return this.salesman;
     }
 }
