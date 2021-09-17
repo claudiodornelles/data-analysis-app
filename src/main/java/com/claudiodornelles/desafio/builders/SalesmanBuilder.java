@@ -54,7 +54,6 @@ public class SalesmanBuilder {
         if (this.salesman.getName() == null) throw new IllegalArgumentException("Cannot create a salesman without a name");
         else if (this.salesman.getCpf() == null) throw new IllegalArgumentException("Cannot create a salesman without a CPF");
         else if (this.salesman.getSalary() == null) throw new IllegalArgumentException("Cannot create a salesman without a Salary");
-        else if (this.salesman.getAmountSold() == null) throw new IllegalArgumentException("Cannot create a salesman without an amount sold information");
         else return this.salesman;
     }
 }

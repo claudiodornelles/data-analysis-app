@@ -34,7 +34,7 @@ public class ReportService {
     
     public void monitorDirectory() {
         File inputRoot = new File(inputDirectory);
-        List<File> sourceFiles = new ArrayList<>(List.of(Objects.requireNonNull(inputRoot.listFiles((input, name) -> name.endsWith(filesExtension)))));
+        List<File> sourceFiles = new ArrayList<>(List.of(Objects.requireNonNull(inputRoot.listFiles((file, name) -> name.endsWith(filesExtension)))));
         sourceFiles.removeIf(file -> writtenOutputs.contains(file.getName()));
         if (!sourceFiles.isEmpty()) {
             LOGGER.info("New files available...");

@@ -10,24 +10,18 @@ repositories {
     mavenCentral()
 }
 
+def junitVersion = '5.7.2'
+def mockitoVersion = '3.12.4'
+def springBootVersion = '2.5.4'
+
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
-    implementation ([
-            "org.springframework.boot:spring-boot-starter"
-            ])
+    implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }
 
 test {
     useJUnitPlatform()
-}
-
-jar {
-    manifest.attributes 'Main-Class': 'com.claudiodornelles.desafio.Main'
-    duplicatesStrategy = 'include'
-    from sourceSets.main.output
-    dependsOn configurations.runtimeClasspath
-    from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') } .collect { zipTree(it) }
-    }
 }

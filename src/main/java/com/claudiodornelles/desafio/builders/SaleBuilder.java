@@ -44,8 +44,8 @@ public class SaleBuilder {
     
     public Sale build() {
         if (this.sale.getId() == null) throw new IllegalArgumentException("Cannot create a Sale without an id");
-        else if (this.sale.getSalesman() == null) throw new IllegalArgumentException("Cannot create a sale without a related salesman");
-        else if (this.sale.getPrice() == null) throw new IllegalArgumentException("Cannot create a sale without a sale price");
+        else if (this.sale.getSalesman() == null) throw new IllegalArgumentException("Cannot create a Sale without a related salesman");
+        else if (this.sale.getPrice() == null) throw new IllegalArgumentException("Cannot create a Sale without a sale price");
         else return this.sale;
     }
 }
