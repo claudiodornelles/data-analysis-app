@@ -44,11 +44,23 @@ public class FileDAO {
         try (Scanner scanner = new Scanner(file)) {
             List<String> fileData = new ArrayList<>();
             while (scanner.hasNext()) {
-                String currentElement = scanner.next();
-                if (currentElement.startsWith(salesmanPrefix) ||
-                    currentElement.startsWith(customerPrefix) ||
-                    currentElement.startsWith(salePrefix)) {
-                    fileData.add(currentElement);
+                String currentLine = scanner.next();
+                List<String> temporaryBlock = List.of(currentLine.split(" "));
+                for (String element : temporaryBlock) {
+                    if (element.startsWith(salesmanPrefix) ||
+                        element.startsWith(customerPrefix) ||
+                        element.startsWith(salePrefix)) {
+                        fileData.add(element);
+                    } else if (Character.isAlphabetic(element.charAt(0)) &&
+                               !element.startsWith("ç")){
+                        int lastElement = fileData.size() - 1;
+                        fileData.set(lastElement,
+                                     fileData.get(lastElement) + " " + element);
+                    } else {
+                        int lastElement = fileData.size() - 1;
+                        fileData.set(lastElement,
+                                     fileData.get(lastElement) + element);
+                    }
                 }
             }
             return fileData;

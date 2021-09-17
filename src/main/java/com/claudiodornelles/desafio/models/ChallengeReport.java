@@ -76,12 +76,16 @@ public class ChallengeReport implements Runnable, Report {
     
     private void tailorFileData(List<String> fileData) {
         for (String element : fileData) {
+            if (element.startsWith(customerPrefix)) {
+                customersData.add(element);
+            }
+            else if (element.startsWith(salePrefix)) {
+                salesData.add(tailorSaleData(element));
+            }
+        }
+        for (String element : fileData) {
             if (element.startsWith(salesmanPrefix)) {
                 salesmenData.add(tailorSalesmanData(element));
-            } else if (element.startsWith(customerPrefix)) {
-                customersData.add(element);
-            } else if (element.startsWith(salePrefix)) {
-                salesData.add(tailorSaleData(element));
             }
         }
     }
@@ -95,8 +99,8 @@ public class ChallengeReport implements Runnable, Report {
                                                 .split(listDelimiter));
         for (String product : products) {
             List<String> productInfo = List.of(product.split(productsInfoDelimiter));
-            BigDecimal quantity = BigDecimal.valueOf(Float.parseFloat(productInfo.get(1)));
-            BigDecimal price = BigDecimal.valueOf(Float.parseFloat(productInfo.get(2)));
+            BigDecimal quantity = new BigDecimal(productInfo.get(1));
+            BigDecimal price = new BigDecimal(productInfo.get(2));
             salePrice = salePrice.add(price.multiply(quantity));
         }
         return SaleBuilder.builder()
@@ -117,7 +121,7 @@ public class ChallengeReport implements Runnable, Report {
         return SalesmanBuilder.builder()
                               .withCpf(salesmanInfo.get(1))
                               .withName(name)
-                              .withSalary(BigDecimal.valueOf(Float.parseFloat(salesmanInfo.get(3))))
+                              .withSalary(new BigDecimal(salesmanInfo.get(3)))
                               .withAmountSold(amountSold)
                               .build();
     }
