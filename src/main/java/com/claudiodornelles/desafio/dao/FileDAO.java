@@ -54,7 +54,8 @@ public class FileDAO {
                     int lastElement = fileData.size() - 1;
                     if (element.startsWith(salesmanPrefix) ||
                         element.startsWith(customerPrefix) ||
-                        element.startsWith(salePrefix)) {
+                        element.startsWith(salePrefix) ||
+                        fileData.isEmpty()) {
                         fileData.add(element);
                     } else if (Character.isAlphabetic(element.charAt(0)) &&
                                !element.startsWith(generalDelimiter)) {
