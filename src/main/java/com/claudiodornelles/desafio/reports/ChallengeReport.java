@@ -105,10 +105,10 @@ public class ChallengeReport implements Runnable, Report {
         try {
             List<String> saleInfo = List.of(data.split(generalDelimiter));
             BigDecimal salePrice = getSalePrice(saleInfo);
-            StringBuilder salesmanName = getSalesmanNameFromSaleInfo(saleInfo);
+            String salesmanName = getSalesmanNameFromSaleInfo(saleInfo);
             return SaleBuilder.builder()
                               .withId(Long.parseLong(saleInfo.get(1)))
-                              .withSalesman(salesmanName.toString())
+                              .withSalesman(salesmanName)
                               .withPrice(salePrice)
                               .build();
         } catch (Exception e) {
@@ -117,7 +117,7 @@ public class ChallengeReport implements Runnable, Report {
         }
     }
     
-    private StringBuilder getSalesmanNameFromSaleInfo(List<String> saleInfo) {
+    private String getSalesmanNameFromSaleInfo(List<String> saleInfo) {
         StringBuilder salesmanName = new StringBuilder(saleInfo.get(3));
         if (saleInfo.size() > 4) {
             int lastElementIndex = saleInfo.size() - 1;
@@ -126,7 +126,7 @@ public class ChallengeReport implements Runnable, Report {
                 salesmanName.append(saleInfo.get(i));
             }
         }
-        return salesmanName;
+        return salesmanName.toString();
     }
     
     private BigDecimal getSalePrice(List<String> saleInfo) {
@@ -148,11 +148,11 @@ public class ChallengeReport implements Runnable, Report {
         try {
             List<String> salesmanInfo = List.of(data.split(generalDelimiter));
             int lastElementIndex = salesmanInfo.size() - 1;
-            StringBuilder salesmanName = getSalesmanNameFromSalesmanInfo(salesmanInfo);
-            BigDecimal amountSold = getAmountSold(salesmanName.toString());
+            String salesmanName = getSalesmanNameFromSalesmanInfo(salesmanInfo);
+            BigDecimal amountSold = getAmountSold(salesmanName);
             return SalesmanBuilder.builder()
                                   .withCpf(salesmanInfo.get(1))
-                                  .withName(salesmanName.toString())
+                                  .withName(salesmanName)
                                   .withSalary(new BigDecimal(salesmanInfo.get(lastElementIndex)))
                                   .withAmountSold(amountSold)
                                   .build();
@@ -171,7 +171,7 @@ public class ChallengeReport implements Runnable, Report {
         return amountSold;
     }
     
-    private StringBuilder getSalesmanNameFromSalesmanInfo(List<String> salesmanInfo) {
+    private String getSalesmanNameFromSalesmanInfo(List<String> salesmanInfo) {
         StringBuilder salesmanName = new StringBuilder(salesmanInfo.get(2));
         int lastElementIndex = salesmanInfo.size() - 1;
         if (salesmanInfo.size() > 4) {
@@ -180,7 +180,7 @@ public class ChallengeReport implements Runnable, Report {
                 salesmanName.append(salesmanInfo.get(i));
             }
         }
-        return salesmanName;
+        return salesmanName.toString();
     }
     
     protected Long getMostExpensiveSaleId() {
