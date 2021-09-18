@@ -7,10 +7,13 @@ import com.claudiodornelles.desafio.models.Sale;
 import com.claudiodornelles.desafio.models.Salesman;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.File;
@@ -29,6 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ExtendWith(SpringExtension.class)
 class ChallengeReportTest {
     
     @Mock
@@ -37,40 +41,8 @@ class ChallengeReportTest {
     @InjectMocks
     private ChallengeReport challengeReport;
     
-    private List<String> regularFileResponse() {
-        List<String> response = new ArrayList<>();
-        response.add("001ç1234567891234çDiegoç50000");
-        response.add("001ç3245678865434çRenatoç40000.99");
-        response.add("001ç3245678865434çJoão Gonçalvesç40000.99");
-        response.add("002ç2345675434544345çJose da SilvaçRural");
-        response.add("002ç2345675433444345çEduardoPereiraçRural");
-        response.add("003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
-        response.add("003ç08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
-        response.add("003ç09ç[1-1-1,2-1-1.50,3-1-0.10]çJoão Gonçalves");
-        return response;
-    }
-    
-    private List<String> fileWithInvalidPrefixResponse() {
-        List<String> response = new ArrayList<>();
-        response.add("018ç1234567891234çDiegoç50000");
-        response.add("015ç3245678865434çRenatoç40000.99");
-        response.add("012ç2345675434544345çJose da SilvaçRural");
-        response.add("032ç2345675433444345çEduardoPereiraçRural");
-        response.add("063ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
-        response.add("803ç08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
-        return response;
-    }
-    
-    private List<String> fileWithIncompleteInformationResponse() {
-        List<String> response = new ArrayList<>();
-        response.add("018çDiegoç50000");
-        response.add("015ç3245678865434ç40000.99");
-        response.add("012ç2345675434544345çRural");
-        response.add("032ç2345675433444345çEduardoPereira");
-        response.add("063ç10ç[1-10-100,2-30-2.50,3-40-3.10]");
-        response.add("08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
-        return response;
-    }
+    @TempDir
+    public File temporaryDirectory;
     
     @Value("${list.delimiter}")
     private String listDelimiter;
@@ -100,51 +72,84 @@ class ChallengeReportTest {
         ReflectionTestUtils.setField(challengeReport, "salePrefix", salePrefix);
     }
     
+    private File createTemporaryFile() {
+        return new File(temporaryDirectory, "tempFile.dat");
+    }
+    
+    private List<String> regularFileResponse() {
+        List<String> response = new ArrayList<>();
+        response.add("001ç1234567891234çDiegoç50000");
+        response.add("001ç3245678865434çJoão Gonçalvesç40000.99");
+        response.add("002ç2345675434544345çJose da SilvaçRural");
+        response.add("002ç2345675433444345çEduardoPereiraçRural");
+        response.add("003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
+        response.add("003ç09ç[1-1-1,2-1-1.50,3-1-0.10]çJoão Gonçalves");
+        return response;
+    }
+    
+    private List<String> fileWithInvalidPrefixResponse() {
+        List<String> response = new ArrayList<>();
+        response.add("018ç1234567891234çDiegoç50000");
+        response.add("015ç3245678865434çRenatoç40000.99");
+        response.add("012ç2345675434544345çJose da SilvaçRural");
+        response.add("032ç2345675433444345çEduardoPereiraçRural");
+        response.add("063ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
+        response.add("803ç08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
+        return response;
+    }
+    
+    private List<String> fileWithIncompleteInformationResponse() {
+        List<String> response = new ArrayList<>();
+        response.add("018çDiegoç50000");
+        response.add("015ç3245678865434ç40000.99");
+        response.add("012ç2345675434544345çRural");
+        response.add("032ç2345675433444345çEduardoPereira");
+        response.add("063ç10ç[1-10-100,2-30-2.50,3-40-3.10]");
+        response.add("08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
+        return response;
+    }
+    
     @Test
     void shouldBeAbleToReadSource() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
-        when(fileDAO.readFile(file)).thenReturn(regularFileResponse());
+        challengeReport.setSource(createTemporaryFile());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(regularFileResponse());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(regularFileResponse(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(file)
+                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
                  );
     }
     
     @Test
     void shouldBeAbleToReadSourceWithInvalidPrefixInformation() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
-        when(fileDAO.readFile(file)).thenReturn(fileWithInvalidPrefixResponse());
+        challengeReport.setSource(createTemporaryFile());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithInvalidPrefixResponse());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(fileWithInvalidPrefixResponse(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(file)
+                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
                  );
     }
     
     @Test
     void shouldBeAbleToReadSourceWithIncompleteInformation() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
-        when(fileDAO.readFile(file)).thenReturn(fileWithIncompleteInformationResponse());
+        challengeReport.setSource(createTemporaryFile());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithIncompleteInformationResponse());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(fileWithIncompleteInformationResponse(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(file)
+                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
                  );
     }
     
     @Test
     void shouldBeAbleToGetEmptyListIfAnyErrorOccur() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
-        when(fileDAO.readFile(file)).thenReturn(Collections.emptyList());
+        challengeReport.setSource(createTemporaryFile());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(Collections.emptyList());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(Collections.emptyList(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(file)
+                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
                  );
     }
     
@@ -161,11 +166,6 @@ class ChallengeReportTest {
                              .withSalesman("Diego")
                              .build());
         sales.add(SaleBuilder.builder()
-                             .withId(8L)
-                             .withPrice(new BigDecimal("393.50"))
-                             .withSalesman("Renato")
-                             .build());
-        sales.add(SaleBuilder.builder()
                              .withId(9L)
                              .withPrice(new BigDecimal("2.60"))
                              .withSalesman("João Gonçalves")
@@ -175,12 +175,6 @@ class ChallengeReportTest {
                                     .withCpf("1234567891234")
                                     .withSalary(new BigDecimal("50000"))
                                     .withAmountSold(new BigDecimal("1199.00"))
-                                    .build());
-        salesmen.add(SalesmanBuilder.builder()
-                                    .withName("Renato")
-                                    .withCpf("3245678865434")
-                                    .withSalary(new BigDecimal("40000.99"))
-                                    .withAmountSold(new BigDecimal("393.50"))
                                     .build());
         salesmen.add(SalesmanBuilder.builder()
                                     .withName("João Gonçalves")
@@ -198,9 +192,6 @@ class ChallengeReportTest {
                 () -> assertEquals(sales.get(1).getId(), challengeReport.getSalesData().get(1).getId()),
                 () -> assertEquals(sales.get(1).getSalesman(), challengeReport.getSalesData().get(1).getSalesman()),
                 () -> assertEquals(0, sales.get(1).getPrice().compareTo(challengeReport.getSalesData().get(1).getPrice())),
-                () -> assertEquals(sales.get(2).getId(), challengeReport.getSalesData().get(2).getId()),
-                () -> assertEquals(sales.get(2).getSalesman(), challengeReport.getSalesData().get(2).getSalesman()),
-                () -> assertEquals(0, sales.get(2).getPrice().compareTo(challengeReport.getSalesData().get(2).getPrice())),
                 () -> assertEquals(salesmen.size(), challengeReport.getSalesmenData().size()),
                 () -> assertEquals(salesmen.get(0).getName(), challengeReport.getSalesmenData().get(0).getName()),
                 () -> assertEquals(salesmen.get(0).getCpf(), challengeReport.getSalesmenData().get(0).getCpf()),
@@ -209,11 +200,7 @@ class ChallengeReportTest {
                 () -> assertEquals(salesmen.get(1).getName(), challengeReport.getSalesmenData().get(1).getName()),
                 () -> assertEquals(salesmen.get(1).getCpf(), challengeReport.getSalesmenData().get(1).getCpf()),
                 () -> assertEquals(0, salesmen.get(1).getAmountSold().compareTo(challengeReport.getSalesmenData().get(1).getAmountSold())),
-                () -> assertEquals(0, salesmen.get(1).getSalary().compareTo(challengeReport.getSalesmenData().get(1).getSalary())),
-                () -> assertEquals(salesmen.get(2).getName(), challengeReport.getSalesmenData().get(2).getName()),
-                () -> assertEquals(salesmen.get(2).getCpf(), challengeReport.getSalesmenData().get(2).getCpf()),
-                () -> assertEquals(0, salesmen.get(2).getAmountSold().compareTo(challengeReport.getSalesmenData().get(2).getAmountSold())),
-                () -> assertEquals(0, salesmen.get(2).getSalary().compareTo(challengeReport.getSalesmenData().get(2).getSalary()))
+                () -> assertEquals(0, salesmen.get(1).getSalary().compareTo(challengeReport.getSalesmenData().get(1).getSalary()))
                  );
     }
     
@@ -239,12 +226,11 @@ class ChallengeReportTest {
     
     @Test
     void shouldBeAbleToGetReportInformation() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
+        challengeReport.setSource(createTemporaryFile());
         challengeReport.tailorFileData(regularFileResponse());
-        when(fileDAO.readFile(file)).thenReturn(regularFileResponse());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(regularFileResponse());
         String expectedReport = "The total amount of customers is: 2\n" +
-                                "The total amount of salesmen is: 3\n" +
+                                "The total amount of salesmen is: 2\n" +
                                 "The most expensive sale has ID: 10\n" +
                                 "The worst salesman ever is: {\"name\":'João Gonçalves', \"cpf\":'3245678865434', \"salary\" :40000.99, \"amountSold\":2.60}\n";
         assertAll(
@@ -255,10 +241,9 @@ class ChallengeReportTest {
     
     @Test
     void shouldReturnAReportWithNullElementsIfSourceHasInvalidPrefixInformation() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
+        challengeReport.setSource(createTemporaryFile());
         challengeReport.tailorFileData(fileWithInvalidPrefixResponse());
-        when(fileDAO.readFile(file)).thenReturn(fileWithInvalidPrefixResponse());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithInvalidPrefixResponse());
         String expectedReport = "The total amount of customers is: 0\n" +
                                 "The total amount of salesmen is: 0\n" +
                                 "The most expensive sale has ID: null\n" +
@@ -271,10 +256,9 @@ class ChallengeReportTest {
     
     @Test
     void shouldReturnAReportWithNullElementsIfSourceHasIncompleteInformation() {
-        File file = Paths.get("test").resolve("test.txt").toFile();
-        challengeReport.setSource(file);
+        challengeReport.setSource(createTemporaryFile());
         challengeReport.tailorFileData(fileWithIncompleteInformationResponse());
-        when(fileDAO.readFile(file)).thenReturn(fileWithIncompleteInformationResponse());
+        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithIncompleteInformationResponse());
         String expectedReport = "The total amount of customers is: 0\n" +
                                 "The total amount of salesmen is: 0\n" +
                                 "The most expensive sale has ID: null\n" +
