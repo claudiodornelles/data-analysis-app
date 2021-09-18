@@ -73,15 +73,15 @@ public class FileDAO {
     }
     
     public void writeReport(String report, @NotNull File sourceFile) {
-        LOGGER.info("Writing output from file :" + sourceFile.getName());
+        LOGGER.info("Writing report from file :" + sourceFile.getName());
         String fileName = sourceFile.getName().replace(filesExtension, ".done" + filesExtension);
         File dir2 = new File(outputDirectory);
         File outputFile = new File(dir2, fileName);
         try (Writer output = new BufferedWriter(new java.io.FileWriter(outputFile))) {
             output.write(report);
-            LOGGER.info("Output file has been written for input file :" + sourceFile.getName());
+            LOGGER.info("Report has been written from file:" + sourceFile.getName());
         } catch (Exception e) {
-            LOGGER.error("Could not write output file from :" + sourceFile.getName());
+            LOGGER.error("Could not write report from file:" + sourceFile.getName());
             LOGGER.trace(e.toString());
         }
     }
