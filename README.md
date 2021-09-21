@@ -1,4 +1,4 @@
-# Challenge - Back End Development
+# Data Analysis App
 
 ## What does this application do?
 This is a data analysis system that monitors all files inside path `${home}/data/in`. Every time it finds a new file with extension `.dat` it read its content and generates a report inside `${home}/data/out/{source_file_name}.done.dat`.
