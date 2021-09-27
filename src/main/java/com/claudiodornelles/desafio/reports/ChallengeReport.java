@@ -3,6 +3,7 @@ package com.claudiodornelles.desafio.reports;
 import com.claudiodornelles.desafio.builders.SaleBuilder;
 import com.claudiodornelles.desafio.builders.SalesmanBuilder;
 import com.claudiodornelles.desafio.dao.FileDAO;
+import com.claudiodornelles.desafio.exceptions.EmptyDataException;
 import com.claudiodornelles.desafio.models.Report;
 import com.claudiodornelles.desafio.models.Sale;
 import com.claudiodornelles.desafio.models.Salesman;
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -60,15 +61,12 @@ public class ChallengeReport implements Runnable, Report {
     
     @Override
     public void run() {
-        tailorFileData(readSource());
-        removeNullObjects();
-        writeReport();
-    }
-    
-    private void removeNullObjects() {
-        customersData.removeIf(Objects::isNull);
-        salesData.removeIf(Objects::isNull);
-        salesmenData.removeIf(Objects::isNull);
+        try {
+            tailorFileData(readSource());
+            writeReport();
+        } catch (EmptyDataException e) {
+            LOGGER.error(e.getMessage());
+        }
     }
     
     @Override
@@ -86,154 +84,138 @@ public class ChallengeReport implements Runnable, Report {
         fileDAO.writeReport(getReport(), file);
     }
     
-    protected void tailorFileData(@NotNull List<String> fileData) {
-        for (String element : fileData) {
-            if (element.startsWith(customerPrefix)) {
-                customersData.add(element);
-            } else if (element.startsWith(salePrefix)) {
-                salesData.add(tailorSaleData(element));
+    public void tailorFileData(@NotNull List<String> fileData) {
+        if (fileData.isEmpty()) {
+            throw new EmptyDataException("No data has been read from file \"" + file.getName() + "\".");
+        } else {
+            for (String element : fileData) {
+                if (element.startsWith(customerPrefix)) {
+                    customersData.add(element);
+                } else if (element.startsWith(salePrefix)) {
+                    tailorSaleData(element).ifPresent(salesData::add);
+                }
             }
-        }
-        for (String element : fileData) {
-            if (element.startsWith(salesmanPrefix)) {
-                salesmenData.add(tailorSalesmanData(element));
+            for (String element : fileData) {
+                if (element.startsWith(salesmanPrefix)) {
+                    tailorSalesmanData(element).ifPresent(salesmenData::add);
+                }
             }
         }
     }
     
-    protected Sale tailorSaleData(String data) {
+    public Optional<Sale> tailorSaleData(String data) {
         try {
             List<String> saleInfo = List.of(data.split(generalDelimiter));
-            BigDecimal salePrice = getSalePrice(saleInfo);
-            String salesmanName = getSalesmanNameFromSaleInfo(saleInfo);
-            return SaleBuilder.builder()
-                              .withId(Long.parseLong(saleInfo.get(1)))
-                              .withSalesman(salesmanName)
-                              .withPrice(salePrice)
-                              .build();
-        } catch (Exception e) {
-            LOGGER.error("Inconsistent information found: \"" + data + "\"");
-            return null;
-        }
-    }
-    
-    private String getSalesmanNameFromSaleInfo(List<String> saleInfo) {
-        StringBuilder salesmanName = new StringBuilder(saleInfo.get(3));
-        if (saleInfo.size() > 4) {
-            int lastElementIndex = saleInfo.size() - 1;
-            for (int i = 4; i <= lastElementIndex; i++) {
-                salesmanName.append(generalDelimiter);
-                salesmanName.append(saleInfo.get(i));
+            
+            BigDecimal salePrice = BigDecimal.ZERO;
+            List<String> products = List.of(saleInfo.get(2)
+                                                    .replace("[", "")
+                                                    .replace("]", "")
+                                                    .split(listDelimiter));
+            for (String product : products) {
+                List<String> productInfo = List.of(product.split(productsInfoDelimiter));
+                BigDecimal quantity = new BigDecimal(productInfo.get(1));
+                BigDecimal price = new BigDecimal(productInfo.get(2));
+                salePrice = salePrice.add(price.multiply(quantity));
             }
+            
+            
+            StringBuilder salesmanName = new StringBuilder(saleInfo.get(3));
+            if (saleInfo.size() > 4) {
+                int lastElementIndex = saleInfo.size() - 1;
+                for (int i = 4; i <= lastElementIndex; i++) {
+                    salesmanName.append(generalDelimiter);
+                    salesmanName.append(saleInfo.get(i));
+                }
+            }
+            
+            return Optional.of(SaleBuilder.builder()
+                                          .withId(Long.parseLong(saleInfo.get(1)))
+                                          .withSalesman(salesmanName.toString())
+                                          .withPrice(salePrice)
+                                          .build());
+        } catch (Exception e) {
+            String logError = "Inconsistent information found: \"" +
+                              data +
+                              "\"";
+            LOGGER.error(logError);
+            LOGGER.trace(e.toString());
+            return Optional.empty();
         }
-        return salesmanName.toString();
     }
     
-    private BigDecimal getSalePrice(List<String> saleInfo) {
-        BigDecimal salePrice = BigDecimal.ZERO;
-        List<String> products = List.of(saleInfo.get(2)
-                                                .replace("[", "")
-                                                .replace("]", "")
-                                                .split(listDelimiter));
-        for (String product : products) {
-            List<String> productInfo = List.of(product.split(productsInfoDelimiter));
-            BigDecimal quantity = new BigDecimal(productInfo.get(1));
-            BigDecimal price = new BigDecimal(productInfo.get(2));
-            salePrice = salePrice.add(price.multiply(quantity));
-        }
-        return salePrice;
-    }
-    
-    protected Salesman tailorSalesmanData(String data) {
+    public Optional<Salesman> tailorSalesmanData(String data) {
         try {
             List<String> salesmanInfo = List.of(data.split(generalDelimiter));
             int lastElementIndex = salesmanInfo.size() - 1;
-            String salesmanName = getSalesmanNameFromSalesmanInfo(salesmanInfo);
-            BigDecimal amountSold = getAmountSold(salesmanName);
-            return SalesmanBuilder.builder()
-                                  .withCpf(salesmanInfo.get(1))
-                                  .withName(salesmanName)
-                                  .withSalary(new BigDecimal(salesmanInfo.get(lastElementIndex)))
-                                  .withAmountSold(amountSold)
-                                  .build();
-        } catch (Exception e) {
-            LOGGER.error("Inconsistent information found: \"" + data + "\"");
-            return null;
-        }
-    }
-    
-    private BigDecimal getAmountSold(String salesmanName) {
-        List<Sale> sales = salesData.stream().filter(sale -> sale.getSalesman().equals(salesmanName)).collect(Collectors.toList());
-        BigDecimal amountSold = BigDecimal.ZERO;
-        for (Sale sale : sales) {
-            amountSold = amountSold.add(sale.getPrice());
-        }
-        return amountSold;
-    }
-    
-    private String getSalesmanNameFromSalesmanInfo(List<String> salesmanInfo) {
-        StringBuilder salesmanName = new StringBuilder(salesmanInfo.get(2));
-        int lastElementIndex = salesmanInfo.size() - 1;
-        if (salesmanInfo.size() > 4) {
-            for (int i = 3; i < lastElementIndex; i++) {
-                salesmanName.append(generalDelimiter);
-                salesmanName.append(salesmanInfo.get(i));
+            StringBuilder salesmanName = new StringBuilder(salesmanInfo.get(2));
+            if (salesmanInfo.size() > 4) {
+                for (int i = 3; i < lastElementIndex; i++) {
+                    salesmanName.append(generalDelimiter);
+                    salesmanName.append(salesmanInfo.get(i));
+                }
             }
+            List<Sale> sales = salesData.stream().filter(sale -> sale.getSalesman().equals(salesmanName.toString())).collect(Collectors.toList());
+            BigDecimal amountSold = BigDecimal.ZERO;
+            for (Sale sale : sales) {
+                amountSold = amountSold.add(sale.getPrice());
+            }
+            return Optional.of(SalesmanBuilder.builder()
+                                              .withCpf(salesmanInfo.get(1))
+                                              .withName(salesmanName.toString())
+                                              .withSalary(new BigDecimal(salesmanInfo.get(lastElementIndex)))
+                                              .withAmountSold(amountSold)
+                                              .build());
+        } catch (Exception e) {
+            String logError = "Inconsistent information found: \"" +
+                              data +
+                              "\"";
+            LOGGER.error(logError);
+            LOGGER.trace(e.toString());
+            return Optional.empty();
         }
-        return salesmanName.toString();
     }
     
-    protected Long getMostExpensiveSaleId() {
+    public Long getMostExpensiveSaleId() {
         Sale mostExpansiveSale = new Sale();
         mostExpansiveSale.setPrice(BigDecimal.ZERO);
         for (Sale sale : salesData) {
-            if (sale != null &&
-                sale.getPrice().compareTo(mostExpansiveSale.getPrice()) > 0) {
+            if (sale.getPrice().compareTo(mostExpansiveSale.getPrice()) > 0) {
                 mostExpansiveSale = sale;
             }
         }
-        if (mostExpansiveSale.getId() != null) {
-            return mostExpansiveSale.getId();
-        } else {
-            LOGGER.error("No sale found.");
-            return null;
+        if (mostExpansiveSale.getId() == 0) {
+            LOGGER.error("Method getMostExpensiveSaleId failed: No sale found.");
         }
+        return mostExpansiveSale.getId();
     }
     
-    protected Salesman getWorstSalesmanEver() {
+    public Optional<Salesman> getWorstSalesmanEver() {
         if (!salesmenData.isEmpty()) {
             List<Salesman> tempData = salesmenData;
             tempData.sort(Comparator.comparing(Salesman::getAmountSold));
-            return tempData.get(0);
+            return Optional.of(tempData.get(0));
         } else {
-            return null;
+            return Optional.empty();
         }
     }
     
-    protected int getSalesmenAmount() {
-        return salesmenData.size();
-    }
-    
-    protected int getCustomersAmount() {
-        return customersData.size();
-    }
-    
-    protected String getReport() {
-        return "The total amount of customers is: " + getCustomersAmount() + "\n" +
-               "The total amount of salesmen is: " + getSalesmenAmount() + "\n" +
+    public String getReport() {
+        return "The total amount of customers is: " + customersData.size() + "\n" +
+               "The total amount of salesmen is: " + salesmenData.size() + "\n" +
                "The most expensive sale has ID: " + getMostExpensiveSaleId() + "\n" +
-               "The worst salesman ever is: " + getWorstSalesmanEver() + "\n";
+               "The worst salesman ever is: " + getWorstSalesmanEver().orElse(new Salesman()) + "\n";
     }
     
-    protected List<String> getCustomersData() {
+    public List<String> getCustomersData() {
         return customersData;
     }
     
-    protected List<Sale> getSalesData() {
+    public List<Sale> getSalesData() {
         return salesData;
     }
     
-    protected List<Salesman> getSalesmenData() {
+    public List<Salesman> getSalesmenData() {
         return salesmenData;
     }
 }
