@@ -246,8 +246,8 @@ class ChallengeReportTest {
         when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithInvalidPrefixResponse());
         String expectedReport = "The total amount of customers is: 0\n" +
                                 "The total amount of salesmen is: 0\n" +
-                                "The most expensive sale has ID: null\n" +
-                                "The worst salesman ever is: null\n";
+                                "The most expensive sale has ID: 0\n" +
+                                "The worst salesman ever is: {\"name\":'null', \"cpf\":'null', \"salary\" :null, \"amountSold\":0}\n";
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.getReport()),
                 () -> assertEquals(expectedReport, challengeReport.getReport())
@@ -261,8 +261,8 @@ class ChallengeReportTest {
         when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithIncompleteInformationResponse());
         String expectedReport = "The total amount of customers is: 0\n" +
                                 "The total amount of salesmen is: 0\n" +
-                                "The most expensive sale has ID: null\n" +
-                                "The worst salesman ever is: null\n";
+                                "The most expensive sale has ID: 0\n" +
+                                "The worst salesman ever is: {\"name\":'null', \"cpf\":'null', \"salary\" :null, \"amountSold\":0}\n";
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.getReport()),
                 () -> assertEquals(expectedReport, challengeReport.getReport())

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class Sale {
     
-    private Long id;
+    private long id;
     private String salesman;
     private BigDecimal price;
     
@@ -15,17 +15,16 @@ public class Sale {
     public void setPrice(BigDecimal totalAmount) {
         if (totalAmount == null) throw new IllegalArgumentException("A total amount must be passed");
         else if (totalAmount.compareTo(BigDecimal.ZERO) < 0)
-            throw new IllegalArgumentException("Total amount cannot be less than zero");
+            throw new IllegalArgumentException("Total amount must be greater than zero");
         else this.price = totalAmount;
     }
     
-    public Long getId() {
+    public long getId() {
         return id;
     }
     
-    public void setId(Long id) {
-        if (id == null) throw new IllegalArgumentException("An id must be passed");
-        else if (id <= 0) throw new IllegalArgumentException("The id must be a number greater than 0");
+    public void setId(long id) {
+        if (id <= 0) throw new IllegalArgumentException("The id must be a number greater than zero");
         else this.id = id;
     }
     

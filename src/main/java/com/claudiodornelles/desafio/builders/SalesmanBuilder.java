@@ -17,39 +17,23 @@ public class SalesmanBuilder {
     }
     
     public SalesmanBuilder withCpf(String cpf) {
-        if (cpf == null || cpf.isBlank()) throw new IllegalArgumentException("A cpf must be passed");
-        else {
-            this.salesman.setCpf(cpf);
-            return this;
-        }
+        this.salesman.setCpf(cpf);
+        return this;
     }
     
     public SalesmanBuilder withName(String name) {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("A name must be passed");
-        else {
-            this.salesman.setName(name);
-            return this;
-        }
+        this.salesman.setName(name);
+        return this;
     }
     
     public SalesmanBuilder withSalary(BigDecimal salary) {
-        if (salary == null) throw new IllegalArgumentException("A salary must be passed");
-        else if (salary.compareTo(BigDecimal.ZERO) <= 0)
-            throw new IllegalArgumentException("Salary must be greater than zero");
-        else {
-            this.salesman.setSalary(salary);
-            return this;
-        }
+        this.salesman.setSalary(salary);
+        return this;
     }
     
     public SalesmanBuilder withAmountSold(BigDecimal amountSold) {
-        if (amountSold == null) throw new IllegalArgumentException("An amount sold must be passed");
-        else if (amountSold.compareTo(BigDecimal.ZERO) < 0)
-            throw new IllegalArgumentException("Amount sold cannot be negative");
-        else {
-            this.salesman.setAmountSold(amountSold);
-            return this;
-        }
+        this.salesman.setAmountSold(amountSold);
+        return this;
     }
     
     public Salesman build() {

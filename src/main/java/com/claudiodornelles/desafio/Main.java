@@ -18,7 +18,6 @@ public class Main {
         while (true) {
             try {
                 reportService.monitorDirectory();
-                Thread.sleep(5000);
             } catch (Exception e) {
                 LOGGER.trace(e.toString());
                 break;

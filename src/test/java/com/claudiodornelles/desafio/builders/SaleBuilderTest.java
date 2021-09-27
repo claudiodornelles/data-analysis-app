@@ -54,20 +54,6 @@ class SaleBuilderTest {
     }
     
     @Test
-    void shouldNotBeAbleToBuildASaleWithNullId() {
-        IllegalArgumentException buildWithNullIdException = assertThrows(IllegalArgumentException.class,
-                                                                         () -> SaleBuilder.builder()
-                                                                                          .withId(null)
-                                                                                          .withSalesman("Dummy salesman")
-                                                                                          .withPrice(new BigDecimal(10))
-                                                                                          .build());
-        assertAll(
-                () -> assertEquals("An id must be passed", buildWithNullIdException.getMessage()),
-                () -> assertEquals(IllegalArgumentException.class, buildWithNullIdException.getClass())
-                 );
-    }
-    
-    @Test
     void shouldNotBeAbleToBuildASaleWithoutASalesman() {
         IllegalArgumentException buildWithoutSalesmanException = assertThrows(IllegalArgumentException.class,
                                                                               () -> SaleBuilder.builder()
@@ -132,7 +118,7 @@ class SaleBuilderTest {
                                                                                                  .withSalesman("Dummy Salesman")
                                                                                                  .build());
         assertAll(
-                () -> assertEquals("A sale price must be passed", buildSaleWithNullPriceException.getMessage()),
+                () -> assertEquals("A total amount must be passed", buildSaleWithNullPriceException.getMessage()),
                 () -> assertEquals(IllegalArgumentException.class, buildSaleWithNullPriceException.getClass())
                  );
     }
@@ -145,7 +131,7 @@ class SaleBuilderTest {
                                                                                               .withPrice(new BigDecimal(10))
                                                                                               .build());
         assertAll(
-                () -> assertEquals("The id must be a number greater than 0", buildSaleWithZeroIdException.getMessage()),
+                () -> assertEquals("The id must be a number greater than zero", buildSaleWithZeroIdException.getMessage()),
                 () -> assertEquals(IllegalArgumentException.class, buildSaleWithZeroIdException.getClass())
         
                  );
@@ -159,7 +145,7 @@ class SaleBuilderTest {
                                                                                                   .withPrice(new BigDecimal(10))
                                                                                                   .build());
         assertAll(
-                () -> assertEquals("The id must be a number greater than 0", buildSaleWithNegativeIdException.getMessage()),
+                () -> assertEquals("The id must be a number greater than zero", buildSaleWithNegativeIdException.getMessage()),
                 () -> assertEquals(IllegalArgumentException.class, buildSaleWithNegativeIdException.getClass())
                  );
     }
@@ -173,7 +159,7 @@ class SaleBuilderTest {
                                                                                                      .withSalesman("Dummy Salesman")
                                                                                                      .build());
         assertAll(
-                () -> assertEquals("Sale price cannot be negative", buildSaleWithNegativePriceException.getMessage()),
+                () -> assertEquals("Total amount must be greater than zero", buildSaleWithNegativePriceException.getMessage()),
                 () -> assertEquals(IllegalArgumentException.class, buildSaleWithNegativePriceException.getClass())
                  );
     }

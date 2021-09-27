@@ -47,7 +47,10 @@ public class ReportService {
     public void createReports(@NotNull List<File> sourceFiles, @NotNull String reportType) {
         try {
             for (File file : sourceFiles) {
-                LOGGER.info("Creating " + reportType + " from file: " + file.getName());
+                String logInfo = "Creating report from file: \"" +
+                                  file.getName() +
+                                  "\"";
+                LOGGER.info(logInfo);
                 writtenOutputs.add(file.getName());
                 Report report = context.getBean(reportType, Report.class);
                 report.setSource(file);
@@ -55,11 +58,16 @@ public class ReportService {
                 thread.start();
             }
         } catch (NoSuchBeanDefinitionException noSuchBeanDefinitionException) {
-            LOGGER.error("Could not generate this type of report " + reportType);
+            String logError = "Could not generate this type of report: \"" +
+                              reportType +
+                              "\"";
+            LOGGER.error(logError);
             LOGGER.trace(noSuchBeanDefinitionException.toString());
-            throw noSuchBeanDefinitionException;
         } catch (Exception e) {
-            LOGGER.error("Cloud not create the report");
+            String logError = "Could not generate report. [ERROR: \"" +
+                              e.getMessage() +
+                              "\"]";
+            LOGGER.error(logError);
             LOGGER.trace(e.toString());
         }
     }
