@@ -1,28 +1,31 @@
-package com.claudiodornelles.desafio.reports;
+package com.claudiodornelles.data.impl.reports;
 
-import com.claudiodornelles.desafio.builders.SaleBuilder;
-import com.claudiodornelles.desafio.builders.SalesmanBuilder;
-import com.claudiodornelles.desafio.dao.FileDAO;
-import com.claudiodornelles.desafio.models.Sale;
-import com.claudiodornelles.desafio.models.Salesman;
+import com.claudiodornelles.data.impl.builders.SaleBuilder;
+import com.claudiodornelles.data.impl.builders.SalesmanBuilder;
+import com.claudiodornelles.data.impl.config.AppConfig;
+import com.claudiodornelles.data.impl.dao.FileDAO;
+import com.claudiodornelles.data.impl.models.Sale;
+import com.claudiodornelles.data.impl.models.Salesman;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.claudiodornelles.data.impl.reports.config.ChallengeReportTestConfig.fileWithIncompleteInformationResponse;
+import static com.claudiodornelles.data.impl.reports.config.ChallengeReportTestConfig.fileWithInvalidPrefixResponse;
+import static com.claudiodornelles.data.impl.reports.config.ChallengeReportTestConfig.regularFileResponse;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,130 +34,91 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
+@SpringJUnitConfig(AppConfig.class)
 class ChallengeReportTest {
-    
-    @Mock
-    private FileDAO fileDAO = mock(FileDAO.class);
-    
-    @InjectMocks
-    private ChallengeReport challengeReport;
-    
+
     @TempDir
-    public File temporaryDirectory;
-    
+    public static File temporaryDirectory;
+
+    private final File temporaryFile = new File(temporaryDirectory, "tempFile.dat");
+
     @Value("${list.delimiter}")
     private String listDelimiter;
-    
     @Value("${products.info.delimiter}")
     private String productsInfoDelimiter;
-    
     @Value("${general.delimiter}")
     private String generalDelimiter;
-    
     @Value("${salesman.prefix}")
     private String salesmanPrefix;
-    
     @Value("${customer.prefix}")
     private String customerPrefix;
-    
     @Value("${sale.prefix}")
     private String salePrefix;
-    
+
+    @Mock
+    private FileDAO fileDAO = mock(FileDAO.class);
+
+    @InjectMocks
+    private ChallengeReport challengeReport;
+
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(challengeReport, "customerPrefix", customerPrefix);
         ReflectionTestUtils.setField(challengeReport, "listDelimiter", listDelimiter);
         ReflectionTestUtils.setField(challengeReport, "productsInfoDelimiter", productsInfoDelimiter);
         ReflectionTestUtils.setField(challengeReport, "generalDelimiter", generalDelimiter);
         ReflectionTestUtils.setField(challengeReport, "salesmanPrefix", salesmanPrefix);
-        ReflectionTestUtils.setField(challengeReport, "customerPrefix", customerPrefix);
         ReflectionTestUtils.setField(challengeReport, "salePrefix", salePrefix);
     }
-    
-    private File createTemporaryFile() {
-        return new File(temporaryDirectory, "tempFile.dat");
-    }
-    
-    private List<String> regularFileResponse() {
-        List<String> response = new ArrayList<>();
-        response.add("001ç1234567891234çDiegoç50000");
-        response.add("001ç3245678865434çJoão Gonçalvesç40000.99");
-        response.add("002ç2345675434544345çJose da SilvaçRural");
-        response.add("002ç2345675433444345çEduardoPereiraçRural");
-        response.add("003ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
-        response.add("003ç09ç[1-1-1,2-1-1.50,3-1-0.10]çJoão Gonçalves");
-        return response;
-    }
-    
-    private List<String> fileWithInvalidPrefixResponse() {
-        List<String> response = new ArrayList<>();
-        response.add("018ç1234567891234çDiegoç50000");
-        response.add("015ç3245678865434çRenatoç40000.99");
-        response.add("012ç2345675434544345çJose da SilvaçRural");
-        response.add("032ç2345675433444345çEduardoPereiraçRural");
-        response.add("063ç10ç[1-10-100,2-30-2.50,3-40-3.10]çDiego");
-        response.add("803ç08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
-        return response;
-    }
-    
-    private List<String> fileWithIncompleteInformationResponse() {
-        List<String> response = new ArrayList<>();
-        response.add("018çDiegoç50000");
-        response.add("015ç3245678865434ç40000.99");
-        response.add("012ç2345675434544345çRural");
-        response.add("032ç2345675433444345çEduardoPereira");
-        response.add("063ç10ç[1-10-100,2-30-2.50,3-40-3.10]");
-        response.add("08ç[1-34-10,2-33-1.50,3-40-0.10]çRenato");
-        return response;
-    }
-    
+
     @Test
     void shouldBeAbleToReadSource() {
-        challengeReport.setSource(createTemporaryFile());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(regularFileResponse());
+        challengeReport.setSource(temporaryFile);
+        when(fileDAO.readFile(temporaryFile)).thenReturn(regularFileResponse());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(regularFileResponse(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
+                () -> verify(fileDAO, times(2)).readFile(temporaryFile)
                  );
     }
-    
+
     @Test
     void shouldBeAbleToReadSourceWithInvalidPrefixInformation() {
-        challengeReport.setSource(createTemporaryFile());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithInvalidPrefixResponse());
+        challengeReport.setSource(temporaryFile);
+        when(fileDAO.readFile(temporaryFile)).thenReturn(fileWithInvalidPrefixResponse());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(fileWithInvalidPrefixResponse(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
+                () -> verify(fileDAO, times(2)).readFile(temporaryFile)
                  );
     }
-    
+
     @Test
     void shouldBeAbleToReadSourceWithIncompleteInformation() {
-        challengeReport.setSource(createTemporaryFile());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithIncompleteInformationResponse());
+        challengeReport.setSource(temporaryFile);
+        when(fileDAO.readFile(temporaryFile)).thenReturn(fileWithIncompleteInformationResponse());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(fileWithIncompleteInformationResponse(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
+                () -> verify(fileDAO, times(2)).readFile(temporaryFile)
                  );
     }
-    
+
     @Test
     void shouldBeAbleToGetEmptyListIfAnyErrorOccur() {
-        challengeReport.setSource(createTemporaryFile());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(Collections.emptyList());
+        challengeReport.setSource(temporaryFile);
+        when(fileDAO.readFile(temporaryFile)).thenReturn(Collections.emptyList());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.readSource()),
                 () -> assertEquals(Collections.emptyList(), challengeReport.readSource()),
-                () -> verify(fileDAO, times(2)).readFile(createTemporaryFile())
+                () -> verify(fileDAO, times(2)).readFile(temporaryFile)
                  );
     }
-    
+
     @Test
     void shouldBeAbleToTailorRegularInputs() {
+        challengeReport.clearData();
         List<String> customers = new ArrayList<>();
         List<Sale> sales = new ArrayList<>();
         List<Salesman> salesmen = new ArrayList<>();
@@ -162,7 +126,7 @@ class ChallengeReportTest {
         customers.add("002ç2345675433444345çEduardoPereiraçRural");
         sales.add(SaleBuilder.builder()
                              .withId(10L)
-                             .withPrice(new BigDecimal("1199"))
+                             .withPrice(new BigDecimal("1199.00"))
                              .withSalesman("Diego")
                              .build());
         sales.add(SaleBuilder.builder()
@@ -184,26 +148,16 @@ class ChallengeReportTest {
                                     .build());
         assertAll(
                 () -> assertDoesNotThrow(() -> challengeReport.tailorFileData(regularFileResponse())),
-                () -> assertEquals(customers.toString(), challengeReport.getCustomersData().toString()),
+                () -> assertEquals(customers, challengeReport.getCustomersData()),
                 () -> assertEquals(sales.size(), challengeReport.getSalesData().size()),
-                () -> assertEquals(sales.get(0).getId(), challengeReport.getSalesData().get(0).getId()),
-                () -> assertEquals(sales.get(0).getSalesman(), challengeReport.getSalesData().get(0).getSalesman()),
-                () -> assertEquals(0, sales.get(0).getPrice().compareTo(challengeReport.getSalesData().get(0).getPrice())),
-                () -> assertEquals(sales.get(1).getId(), challengeReport.getSalesData().get(1).getId()),
-                () -> assertEquals(sales.get(1).getSalesman(), challengeReport.getSalesData().get(1).getSalesman()),
-                () -> assertEquals(0, sales.get(1).getPrice().compareTo(challengeReport.getSalesData().get(1).getPrice())),
+                () -> assertEquals(sales.get(0), challengeReport.getSalesData().get(0)),
+                () -> assertEquals(sales.get(1), challengeReport.getSalesData().get(1)),
                 () -> assertEquals(salesmen.size(), challengeReport.getSalesmenData().size()),
-                () -> assertEquals(salesmen.get(0).getName(), challengeReport.getSalesmenData().get(0).getName()),
-                () -> assertEquals(salesmen.get(0).getCpf(), challengeReport.getSalesmenData().get(0).getCpf()),
-                () -> assertEquals(0, salesmen.get(0).getAmountSold().compareTo(challengeReport.getSalesmenData().get(0).getAmountSold())),
-                () -> assertEquals(0, salesmen.get(0).getSalary().compareTo(challengeReport.getSalesmenData().get(0).getSalary())),
-                () -> assertEquals(salesmen.get(1).getName(), challengeReport.getSalesmenData().get(1).getName()),
-                () -> assertEquals(salesmen.get(1).getCpf(), challengeReport.getSalesmenData().get(1).getCpf()),
-                () -> assertEquals(0, salesmen.get(1).getAmountSold().compareTo(challengeReport.getSalesmenData().get(1).getAmountSold())),
-                () -> assertEquals(0, salesmen.get(1).getSalary().compareTo(challengeReport.getSalesmenData().get(1).getSalary()))
+                () -> assertEquals(salesmen.get(0), challengeReport.getSalesmenData().get(0)),
+                () -> assertEquals(salesmen.get(1), challengeReport.getSalesmenData().get(1))
                  );
     }
-    
+
     @Test
     void shouldReturnEmptyListsOfDataIfSourceContainsInvalidPrefix() {
         assertAll(
@@ -213,7 +167,7 @@ class ChallengeReportTest {
                 () -> assertEquals(Collections.emptyList(), challengeReport.getSalesData())
                  );
     }
-    
+
     @Test
     void shouldReturnEmptyListOfDataIfSourceHasIncompleteInformation() {
         assertAll(
@@ -223,12 +177,11 @@ class ChallengeReportTest {
                 () -> assertEquals(Collections.emptyList(), challengeReport.getSalesData())
                  );
     }
-    
+
     @Test
     void shouldBeAbleToGetReportInformation() {
-        challengeReport.setSource(createTemporaryFile());
+        challengeReport.setSource(temporaryFile);
         challengeReport.tailorFileData(regularFileResponse());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(regularFileResponse());
         String expectedReport = "The total amount of customers is: 2\n" +
                                 "The total amount of salesmen is: 2\n" +
                                 "The most expensive sale has ID: 10\n" +
@@ -238,12 +191,11 @@ class ChallengeReportTest {
                 () -> assertEquals(expectedReport, challengeReport.getReport())
                  );
     }
-    
+
     @Test
     void shouldReturnAReportWithNullElementsIfSourceHasInvalidPrefixInformation() {
-        challengeReport.setSource(createTemporaryFile());
+        challengeReport.setSource(temporaryFile);
         challengeReport.tailorFileData(fileWithInvalidPrefixResponse());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithInvalidPrefixResponse());
         String expectedReport = "The total amount of customers is: 0\n" +
                                 "The total amount of salesmen is: 0\n" +
                                 "The most expensive sale has ID: 0\n" +
@@ -253,12 +205,11 @@ class ChallengeReportTest {
                 () -> assertEquals(expectedReport, challengeReport.getReport())
                  );
     }
-    
+
     @Test
     void shouldReturnAReportWithNullElementsIfSourceHasIncompleteInformation() {
-        challengeReport.setSource(createTemporaryFile());
+        challengeReport.setSource(temporaryFile);
         challengeReport.tailorFileData(fileWithIncompleteInformationResponse());
-        when(fileDAO.readFile(createTemporaryFile())).thenReturn(fileWithIncompleteInformationResponse());
         String expectedReport = "The total amount of customers is: 0\n" +
                                 "The total amount of salesmen is: 0\n" +
                                 "The most expensive sale has ID: 0\n" +

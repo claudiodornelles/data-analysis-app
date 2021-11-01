@@ -1,6 +1,6 @@
-package com.claudiodornelles.desafio.builders;
+package com.claudiodornelles.data.impl.builders;
 
-import com.claudiodornelles.desafio.models.Sale;
+import com.claudiodornelles.data.impl.models.Sale;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -32,10 +32,7 @@ class SaleBuilderTest {
     void shouldBeAbleToBuildASale() {
         assertAll(
                 () -> assertDoesNotThrow(this::buildDummySale),
-                () -> assertEquals(dummySale().getId(), buildDummySale().getId()),
-                () -> assertEquals(dummySale().getPrice(), buildDummySale().getPrice()),
-                () -> assertEquals(dummySale().getSalesman(), buildDummySale().getSalesman()),
-                () -> assertEquals(Sale.class, buildDummySale().getClass())
+                () -> assertEquals(dummySale(), buildDummySale())
                  );
     }
     

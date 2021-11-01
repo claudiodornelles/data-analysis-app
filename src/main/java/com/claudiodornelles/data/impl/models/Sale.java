@@ -1,6 +1,7 @@
-package com.claudiodornelles.desafio.models;
+package com.claudiodornelles.data.impl.models;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public class Sale {
     
@@ -33,8 +34,30 @@ public class Sale {
     }
     
     public void setSalesman(String salesman) {
-        if (salesman == null || salesman.isBlank())
+        if (salesman == null || salesman.trim().isEmpty())
             throw new IllegalArgumentException("A salesman name must be passed");
         else this.salesman = salesman;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sale sale = (Sale) o;
+        return id == sale.id && salesman.equals(sale.salesman) && price.equals(sale.price);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, salesman, price);
+    }
+
+    @Override
+    public String toString() {
+        return "Sale{" +
+               "id=" + id +
+               ", salesman='" + salesman + '\'' +
+               ", price=" + price +
+               '}';
     }
 }

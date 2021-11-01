@@ -1,4 +1,4 @@
-package com.claudiodornelles.desafio.models;
+package com.claudiodornelles.data.impl.models;
 
 import java.io.File;
 import java.util.List;

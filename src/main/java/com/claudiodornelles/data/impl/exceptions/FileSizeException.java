@@ -1,4 +1,4 @@
-package com.claudiodornelles.desafio.exceptions;
+package com.claudiodornelles.data.impl.exceptions;
 
 public class FileSizeException extends RuntimeException {
     public FileSizeException(String message) {

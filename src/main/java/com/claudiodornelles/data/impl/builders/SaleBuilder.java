@@ -1,6 +1,6 @@
-package com.claudiodornelles.desafio.builders;
+package com.claudiodornelles.data.impl.builders;
 
-import com.claudiodornelles.desafio.models.Sale;
+import com.claudiodornelles.data.impl.models.Sale;
 
 import java.math.BigDecimal;
 
@@ -19,7 +19,6 @@ public class SaleBuilder {
     public SaleBuilder withId(long id) {
         this.sale.setId(id);
         return this;
-        
     }
     
     public SaleBuilder withSalesman(String salesman) {

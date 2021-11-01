@@ -1,19 +1,14 @@
-package com.claudiodornelles.desafio.reports;
+package com.claudiodornelles.data.impl.reports;
 
-import com.claudiodornelles.desafio.builders.SaleBuilder;
-import com.claudiodornelles.desafio.builders.SalesmanBuilder;
-import com.claudiodornelles.desafio.dao.FileDAO;
-import com.claudiodornelles.desafio.exceptions.EmptyDataException;
-import com.claudiodornelles.desafio.models.Report;
-import com.claudiodornelles.desafio.models.Sale;
-import com.claudiodornelles.desafio.models.Salesman;
-import org.jetbrains.annotations.NotNull;
+import com.claudiodornelles.data.impl.builders.SaleBuilder;
+import com.claudiodornelles.data.impl.builders.SalesmanBuilder;
+import com.claudiodornelles.data.impl.dao.FileDAO;
+import com.claudiodornelles.data.impl.exceptions.EmptyDataException;
+import com.claudiodornelles.data.impl.models.Report;
+import com.claudiodornelles.data.impl.models.Sale;
+import com.claudiodornelles.data.impl.models.Salesman;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -23,10 +18,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
-@Scope("prototype")
 public class ChallengeReport implements Runnable, Report {
-    
+
     private File file;
     private final String listDelimiter;
     private final String productsInfoDelimiter;
@@ -35,20 +28,19 @@ public class ChallengeReport implements Runnable, Report {
     private final String customerPrefix;
     private final String salePrefix;
     private final FileDAO fileDAO;
-    
+
     private final List<String> customersData = new ArrayList<>();
     private final List<Sale> salesData = new ArrayList<>();
     private final List<Salesman> salesmenData = new ArrayList<>();
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ChallengeReport.class);
-    
-    @Autowired
-    public ChallengeReport(@Value("${list.delimiter}") String listDelimiter,
-                           @Value("${products.info.delimiter}") String productsInfoDelimiter,
-                           @Value("${general.delimiter}") String generalDelimiter,
-                           @Value("${salesman.prefix}") String salesmanPrefix,
-                           @Value("${customer.prefix}") String customerPrefix,
-                           @Value("${sale.prefix}") String salePrefix,
+
+    public ChallengeReport(String listDelimiter,
+                           String productsInfoDelimiter,
+                           String generalDelimiter,
+                           String salesmanPrefix,
+                           String customerPrefix,
+                           String salePrefix,
                            FileDAO fileDAO) {
         this.listDelimiter = listDelimiter;
         this.productsInfoDelimiter = productsInfoDelimiter;
@@ -58,33 +50,37 @@ public class ChallengeReport implements Runnable, Report {
         this.salePrefix = salePrefix;
         this.fileDAO = fileDAO;
     }
-    
+
     @Override
     public void run() {
         try {
             tailorFileData(readSource());
             writeReport();
         } catch (EmptyDataException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("File {{}} has no data", file.getName(), e);
         }
     }
-    
+
     @Override
     public void setSource(File file) {
         this.file = file;
     }
-    
+
     @Override
     public List<String> readSource() {
         return fileDAO.readFile(file);
     }
-    
+
     @Override
     public void writeReport() {
-        fileDAO.writeReport(getReport(), file);
+        try {
+            fileDAO.writeReport(getReport(), file);
+        } catch (Exception e) {
+            LOGGER.error("Error trying to write report", e);
+        }
     }
-    
-    public void tailorFileData(@NotNull List<String> fileData) {
+
+    public void tailorFileData(List<String> fileData) {
         if (fileData.isEmpty()) {
             throw new EmptyDataException("No data has been read from file \"" + file.getName() + "\".");
         } else {
@@ -102,57 +98,53 @@ public class ChallengeReport implements Runnable, Report {
             }
         }
     }
-    
+
     public Optional<Sale> tailorSaleData(String data) {
         try {
-            List<String> saleInfo = List.of(data.split(generalDelimiter));
-            
+            String[] saleInfo = data.split(generalDelimiter);
+
             BigDecimal salePrice = BigDecimal.ZERO;
-            List<String> products = List.of(saleInfo.get(2)
-                                                    .replace("[", "")
-                                                    .replace("]", "")
-                                                    .split(listDelimiter));
+            String[] products = saleInfo[2]
+                    .replace("[", "")
+                    .replace("]", "")
+                    .split(listDelimiter);
             for (String product : products) {
-                List<String> productInfo = List.of(product.split(productsInfoDelimiter));
-                BigDecimal quantity = new BigDecimal(productInfo.get(1));
-                BigDecimal price = new BigDecimal(productInfo.get(2));
+                String[] productInfo = product.split(productsInfoDelimiter);
+                BigDecimal quantity = new BigDecimal(productInfo[1]);
+                BigDecimal price = new BigDecimal(productInfo[2]);
                 salePrice = salePrice.add(price.multiply(quantity));
             }
-            
-            
-            StringBuilder salesmanName = new StringBuilder(saleInfo.get(3));
-            if (saleInfo.size() > 4) {
-                int lastElementIndex = saleInfo.size() - 1;
+
+
+            StringBuilder salesmanName = new StringBuilder(saleInfo[3]);
+            if (saleInfo.length > 4) {
+                int lastElementIndex = saleInfo.length - 1;
                 for (int i = 4; i <= lastElementIndex; i++) {
                     salesmanName.append(generalDelimiter);
-                    salesmanName.append(saleInfo.get(i));
+                    salesmanName.append(saleInfo[i]);
                 }
             }
-            
+
             return Optional.of(SaleBuilder.builder()
-                                          .withId(Long.parseLong(saleInfo.get(1)))
-                                          .withSalesman(salesmanName.toString())
-                                          .withPrice(salePrice)
-                                          .build());
+                    .withId(Long.parseLong(saleInfo[1]))
+                    .withSalesman(salesmanName.toString())
+                    .withPrice(salePrice)
+                    .build());
         } catch (Exception e) {
-            String logError = "Inconsistent information found: \"" +
-                              data +
-                              "\"";
-            LOGGER.error(logError);
-            LOGGER.trace(e.toString());
+            LOGGER.error("Inconsistent information found: {{}}", data, e);
             return Optional.empty();
         }
     }
-    
+
     public Optional<Salesman> tailorSalesmanData(String data) {
         try {
-            List<String> salesmanInfo = List.of(data.split(generalDelimiter));
-            int lastElementIndex = salesmanInfo.size() - 1;
-            StringBuilder salesmanName = new StringBuilder(salesmanInfo.get(2));
-            if (salesmanInfo.size() > 4) {
+            String[] salesmanInfo = data.split(generalDelimiter);
+            int lastElementIndex = salesmanInfo.length - 1;
+            StringBuilder salesmanName = new StringBuilder(salesmanInfo[2]);
+            if (salesmanInfo.length > 4) {
                 for (int i = 3; i < lastElementIndex; i++) {
                     salesmanName.append(generalDelimiter);
-                    salesmanName.append(salesmanInfo.get(i));
+                    salesmanName.append(salesmanInfo[i]);
                 }
             }
             List<Sale> sales = salesData.stream().filter(sale -> sale.getSalesman().equals(salesmanName.toString())).collect(Collectors.toList());
@@ -161,21 +153,17 @@ public class ChallengeReport implements Runnable, Report {
                 amountSold = amountSold.add(sale.getPrice());
             }
             return Optional.of(SalesmanBuilder.builder()
-                                              .withCpf(salesmanInfo.get(1))
-                                              .withName(salesmanName.toString())
-                                              .withSalary(new BigDecimal(salesmanInfo.get(lastElementIndex)))
-                                              .withAmountSold(amountSold)
-                                              .build());
+                    .withCpf(salesmanInfo[1])
+                    .withName(salesmanName.toString())
+                    .withSalary(new BigDecimal(salesmanInfo[lastElementIndex]))
+                    .withAmountSold(amountSold)
+                    .build());
         } catch (Exception e) {
-            String logError = "Inconsistent information found: \"" +
-                              data +
-                              "\"";
-            LOGGER.error(logError);
-            LOGGER.trace(e.toString());
+            LOGGER.error("Inconsistent information found: {{}}", data, e);
             return Optional.empty();
         }
     }
-    
+
     public Long getMostExpensiveSaleId() {
         Sale mostExpansiveSale = new Sale();
         mostExpansiveSale.setPrice(BigDecimal.ZERO);
@@ -189,7 +177,7 @@ public class ChallengeReport implements Runnable, Report {
         }
         return mostExpansiveSale.getId();
     }
-    
+
     public Optional<Salesman> getWorstSalesmanEver() {
         if (!salesmenData.isEmpty()) {
             List<Salesman> tempData = salesmenData;
@@ -199,23 +187,29 @@ public class ChallengeReport implements Runnable, Report {
             return Optional.empty();
         }
     }
-    
+
     public String getReport() {
         return "The total amount of customers is: " + customersData.size() + "\n" +
-               "The total amount of salesmen is: " + salesmenData.size() + "\n" +
-               "The most expensive sale has ID: " + getMostExpensiveSaleId() + "\n" +
-               "The worst salesman ever is: " + getWorstSalesmanEver().orElse(new Salesman()) + "\n";
+                "The total amount of salesmen is: " + salesmenData.size() + "\n" +
+                "The most expensive sale has ID: " + getMostExpensiveSaleId() + "\n" +
+                "The worst salesman ever is: " + getWorstSalesmanEver().orElse(new Salesman()) + "\n";
     }
-    
+
     public List<String> getCustomersData() {
         return customersData;
     }
-    
+
     public List<Sale> getSalesData() {
         return salesData;
     }
-    
+
     public List<Salesman> getSalesmenData() {
         return salesmenData;
+    }
+
+    public void clearData() {
+        this.customersData.clear();
+        this.salesData.clear();
+        this.salesmenData.clear();
     }
 }

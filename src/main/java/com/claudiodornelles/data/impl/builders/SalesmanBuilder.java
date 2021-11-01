@@ -1,6 +1,6 @@
-package com.claudiodornelles.desafio.builders;
+package com.claudiodornelles.data.impl.builders;
 
-import com.claudiodornelles.desafio.models.Salesman;
+import com.claudiodornelles.data.impl.models.Salesman;
 
 import java.math.BigDecimal;
 

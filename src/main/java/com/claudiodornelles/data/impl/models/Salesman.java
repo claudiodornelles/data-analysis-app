@@ -1,6 +1,7 @@
-package com.claudiodornelles.desafio.models;
+package com.claudiodornelles.data.impl.models;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public class Salesman {
     
@@ -9,27 +10,17 @@ public class Salesman {
     private BigDecimal salary;
     private BigDecimal amountSold;
     
-    @Override
-    public String toString() {
-        return "{" +
-               "\"name\":'" + name + '\'' +
-               ", \"cpf\":'" + cpf + '\'' +
-               ", \"salary\" :" + salary +
-               ", \"amountSold\":" + amountSold +
-               '}';
-    }
-    
     public Salesman() {
         this.amountSold = BigDecimal.ZERO;
     }
     
     public void setName(String name) {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("A name must be passed");
+        if (name == null || name.trim().isEmpty()) throw new IllegalArgumentException("A name must be passed");
         else this.name = name;
     }
     
     public void setCpf(String cpf) {
-        if (cpf == null || cpf.isBlank()) throw new IllegalArgumentException("A cpf must be passed");
+        if (cpf == null || cpf.trim().isEmpty()) throw new IllegalArgumentException("A cpf must be passed");
         else this.cpf = cpf;
     }
     
@@ -61,5 +52,28 @@ public class Salesman {
     
     public BigDecimal getAmountSold() {
         return amountSold;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+               "\"name\":'" + name + '\'' +
+               ", \"cpf\":'" + cpf + '\'' +
+               ", \"salary\" :" + salary +
+               ", \"amountSold\":" + amountSold +
+               '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Salesman salesman = (Salesman) o;
+        return name.equals(salesman.name) && cpf.equals(salesman.cpf) && salary.equals(salesman.salary) && amountSold.equals(salesman.amountSold);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, cpf, salary, amountSold);
     }
 }
