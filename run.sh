@@ -2,4 +2,4 @@
 
 ./gradlew clean
 ./gradlew build
-java -jar build/libs/desafio-tecnico.jar
+java -jar build/libs/data-analysis-app.jar
