@@ -1,6 +1,4 @@
 plugins {
-    id 'org.springframework.boot' version '2.5.4'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
 }
 
@@ -10,19 +8,39 @@ repositories {
     mavenCentral()
 }
 
-def junitVersion = '5.7.2'
-def mockitoVersion = '3.12.4'
-def springBootVersion = '2.5.4'
+def junitVersion = '5.8.1'
+def mockitoVersion = '4.0.0'
+def springVersion = '5.3.12'
+def slf4jVersion = '1.7.32'
+def log4jVersion = '2.14.1'
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
-    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation([
+            "org.springframework:spring-context:${springVersion}",
+            "org.springframework:spring-core:${springVersion}",
+            "org.springframework:spring-beans:${springVersion}",
+            "org.slf4j:slf4j-api:${slf4jVersion}",
+            "org.slf4j:slf4j-log4j12:${slf4jVersion}",
+            "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    ])
+    testImplementation([
+            "org.junit.jupiter:junit-jupiter-api:${junitVersion}",
+            "org.springframework:spring-test:${springVersion}",
+            "org.mockito:mockito-junit-jupiter:${mockitoVersion}",
+    ])
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
-    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }
 
 test {
     useJUnitPlatform()
+}
+
+jar {
+    manifest.attributes 'Main-Class': 'com.claudiodornelles.data.impl.Main'
+    duplicatesStrategy = 'include'
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') } .collect { zipTree(it) }
+    }
 }
